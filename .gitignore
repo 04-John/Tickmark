@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.cache/
+out/
+.env
+.env.*
+!.env.example
+*.pem
+PLAN.md
+*.local.*
