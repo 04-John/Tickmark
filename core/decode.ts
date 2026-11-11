@@ -51,6 +51,11 @@ export function intentsDepositOwner(msg: unknown, sender: string): string {
   return isAccountId(text) ? text : sender;
 }
 
+/** A raw on-chain amount: a non-negative whole number written in decimal digits. */
+export function isRawAmount(value: unknown): value is string {
+  return typeof value === 'string' && /^\d{1,40}$/.test(value);
+}
+
 type Args = Record<string, unknown>;
 const str = (v: unknown): string | undefined => (typeof v === 'string' && v.length > 0 ? v : undefined);
 
@@ -66,7 +71,11 @@ export function decodeProposal(dao: string, p: Proposal): Movement[] {
     proposer: p.proposer,
   };
   const out: Movement[] = [];
-  const push = (m: Omit<Movement, keyof typeof base | 'line'>) => out.push({ ...base, line: out.length, ...m });
+  // Amounts on NEAR are whole numbers of the smallest unit. Anything else ("10000.000000000002") makes the
+  // contract call fail, so it can never move money and is left out.
+  const push = (m: Omit<Movement, keyof typeof base | 'line'>) => {
+    if (isRawAmount(m.amount)) out.push({ ...base, line: out.length, ...m });
+  };
 
   if (isTransfer(p.kind)) {
     const t = p.kind.Transfer;

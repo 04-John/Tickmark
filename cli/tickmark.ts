@@ -116,7 +116,7 @@ async function books(dao: string, options: Options) {
   for (const e of entries) basis.set(e.basis, (basis.get(e.basis) ?? 0) + 1);
   const pct = (n: number) => `${Math.round((100 * n) / Math.max(entries.length, 1))}%`;
   console.log(
-    `\n  How lines were placed: chain facts ${basis.get('chain') ?? 0} (${pct(basis.get('chain') ?? 0)}), proposal words ${basis.get('memo') ?? 0} (${pct(basis.get('memo') ?? 0)}), ` +
+    `\n  How lines were placed: chain facts ${basis.get('chain') ?? 0} (${pct(basis.get('chain') ?? 0)}), payee's own-name account ${basis.get('account_name') ?? 0}, proposal words ${basis.get('memo') ?? 0} (${pct(basis.get('memo') ?? 0)}), ` +
       `payee history ${basis.get('payee_history') ?? 0} (${pct(basis.get('payee_history') ?? 0)}), not placed ${basis.get('none') ?? 0} (${pct(basis.get('none') ?? 0)})`,
   );
 

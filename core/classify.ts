@@ -28,6 +28,7 @@ export type CategoryId =
   | 'refunds'
   | 'suspense'
   | 'own_wallets'
+  | 'loans'
   | 'exchanges'
   | 'protocols'
   | 'swaps'
@@ -53,6 +54,7 @@ export const CATEGORIES: Record<CategoryId, Category> = Object.fromEntries(
       ['refunds', '6110', 'Refunds', 'expense'],
       ['suspense', '1999', 'Suspense (payments to be explained)', 'suspense'],
       ['own_wallets', '1910', "Moved to the organization's other wallets", 'balance_sheet'],
+      ['loans', '1950', 'Loans given', 'balance_sheet'],
       ['exchanges', '1920', 'Held at exchanges', 'balance_sheet'],
       ['protocols', '1930', 'Deposited into DeFi protocols', 'balance_sheet'],
       ['swaps', '1940', 'Swaps in transit', 'balance_sheet'],
@@ -89,10 +91,11 @@ export function sourceLocation(m: ValuedMovement): Location {
 }
 
 /** How a placement was decided: what the chain or the proposal type shows, a person's words, the payee's history, or nothing. */
-export type Basis = 'chain' | 'memo' | 'payee_history' | 'none';
+export type Basis = 'chain' | 'account_name' | 'memo' | 'payee_history' | 'none';
 
 export type RuleId =
   | 'to_self'
+  | 'own_name'
   | 'wrap_near'
   | 'stake_near'
   | 'storage_deposit'
@@ -137,6 +140,7 @@ export type Classified = ValuedMovement & {
 /** Words that place a payment, checked in this order; the first category with a match wins. */
 const WORDS: [CategoryId, RegExp][] = [
   ['refunds', /\brefund(s|ed)?\b/i],
+  ['loans', /\b(loans?|drawdowns?)\b/i],
   ['own_wallets', /\b(multi-?sig|cold wallet|hot wallet|own wallet|top[ -]?up|rebalanc\w*)\b/i],
   ['exchanges', /\b(kraken|binance|coinbase|okx|bybit|kucoin|bitget|gate\.io|htx|huobi|bitfinex|upbit)\b/i],
   ['distributions', /\b(protocol fees?|revenue share|buy-?backs?|fee distributions?)\b/i],
@@ -154,6 +158,12 @@ const STAKING_POOL = /\.(poolv1|pool|poolv2)\.near$|\.pool\.f863973\.m0$/;
 const STAKE_METHODS = new Set(['deposit_and_stake', 'deposit', 'stake']);
 const short = (account: string) => (/^[0-9a-f]{64}$/.test(account) ? `${account.slice(0, 6)}…${account.slice(-4)}` : account);
 const fmt = (quantity: string) => Number(quantity).toLocaleString('en-US', { maximumFractionDigits: 6 });
+
+/** True when the payee is the DAO's own name on the plain registry: x.near for x.sputnik-dao.near. */
+export function sameNameAccount(dao: string, payee: string): boolean {
+  const m = /^([^.]+)\.sputnik-dao\.(near|testnet)$/.exec(dao);
+  return Boolean(m && payee === `${m[1]}.${m[2]}`);
+}
 
 /** First matching category for a person's words, with the word that matched. */
 export function categoryFromWords(text: string): { category: CategoryId; word: string } | null {
@@ -200,6 +210,9 @@ function placeAlone(m: ValuedMovement, d: Description, payee: string): Draft | n
   }
   if (m.via === 'ft_transfer_call') {
     return { category: 'protocols', rule: 'into_protocol', basis: 'chain', evidence: `ft_transfer_call sent the tokens into contract ${m.to}` };
+  }
+  if (sameNameAccount(m.dao, payee)) {
+    return { category: 'own_wallets', rule: 'own_name', basis: 'account_name', evidence: `the payee ${payee} has the DAO's own name, so it is treated as the organization's own account` };
   }
   if (words) {
     const cat = CATEGORIES[words.category];

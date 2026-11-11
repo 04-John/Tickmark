@@ -41,7 +41,7 @@ export type ExportOptions = {
 };
 
 const SECTION_NAMES = { expense: 'Spending', suspense: 'Not explained yet', balance_sheet: 'Not spending (stays on the balance sheet)' } as const;
-const BASIS_NAMES = { chain: 'chain facts', memo: 'words in the proposal', payee_history: 'earlier payments to the same payee', none: 'not placed' } as const;
+const BASIS_NAMES = { chain: 'chain facts', account_name: "the payee's account name", memo: 'words in the proposal', payee_history: 'earlier payments to the same payee', none: 'not placed' } as const;
 const DATE_SOURCE_NAMES = { approval_vote: 'approving vote', bulk_paid_block: 'bulk list paid block', submitted: 'submission date (payment date not found)' } as const;
 
 const usdCell = (cents: number | null) => (cents === null ? null : decimal(centsToString(cents)));

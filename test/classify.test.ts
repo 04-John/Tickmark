@@ -120,6 +120,22 @@ test('payee history fills in a memo-less payment only when earlier placements ag
   assert.match(byId.get(44)!.evidence, /Grants and Contractors and services/);
 });
 
+test('a payee with the DAO’s own name is the organization’s own account; loans are lending, not spending', () => {
+  const toOwn = proposal(60, { Transfer: { token_id: '', receiver_id: 'acme.near', amount: near(1000), msg: null } }, '');
+  const toLookalike = proposal(61, { Transfer: { token_id: '', receiver_id: 'acme-payments.near', amount: near(1), msg: null } }, '');
+  const loan = proposal(62, { Transfer: { token_id: '', receiver_id: 'borrower.near', amount: near(10), msg: null } }, 'Drawdown of Loan');
+  const [own, lookalike, lent] = run(toOwn, toLookalike, loan);
+  assert.deepEqual([own!.booking?.category, own!.booking?.basis, own!.booking?.debit.code], ['own_wallets', 'account_name', '1910']);
+  assert.match(own!.booking!.evidence, /acme\.near has the DAO's own name/);
+  assert.equal(lookalike!.booking?.category, 'suspense', 'only the exact name counts');
+  assert.deepEqual([lent!.booking?.category, lent!.booking?.debit.code], ['loans', '1950']);
+});
+
+test('amounts that are not whole numbers cannot move money and are left out', () => {
+  const bad = proposal(63, { Transfer: { token_id: '', receiver_id: 'x.near', amount: '10000.000000000002', msg: null } }, '');
+  assert.deepEqual(decodeProposal(fx.DAO, bad), []);
+});
+
 test('other DAOs, unpaid proposals, and unexplained payments', () => {
   const toDao = proposal(50, { Transfer: { token_id: '', receiver_id: 'guild.sputnik-dao.near', amount: near(10), msg: null } }, '');
   const unexplained = proposal(51, { Transfer: { token_id: 'meme.near', receiver_id: 'cc'.repeat(32), amount: '5', msg: null } }, '');

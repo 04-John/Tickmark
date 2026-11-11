@@ -1,5 +1,5 @@
 // Read a Sputnik DAO (or Trezu treasury) from the chain: proposals, policy, and Trezu bulk payment lists.
-import { decodeProposal, normalizeToken } from './decode.ts';
+import { decodeProposal, isRawAmount, normalizeToken } from './decode.ts';
 import type { ViewClient } from './rpc.ts';
 import type { Movement, Proposal } from './types.ts';
 import { nsToMs } from './units.ts';
@@ -105,6 +105,7 @@ export async function expandBulkPayments(rpc: ViewClient, movements: Movement[])
     }
     const token = list.token_id === 'native' ? 'near' : normalizeToken(list.token_id);
     list.payments.forEach((payment, i) => {
+      if (!isRawAmount(payment.amount)) return;
       out.push({
         ...m,
         line: m.line * 1000 + i,
