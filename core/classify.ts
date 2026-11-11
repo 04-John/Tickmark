@@ -165,6 +165,15 @@ export function sameNameAccount(dao: string, payee: string): boolean {
   return Boolean(m && payee === `${m[1]}.${m[2]}`);
 }
 
+function ownNamePlacement(payee: string): Draft {
+  return {
+    category: 'own_wallets',
+    rule: 'own_name',
+    basis: 'account_name',
+    evidence: `nothing says what it was for, and the payee ${payee} has the DAO's own name, so it is treated as the organization's own account`,
+  };
+}
+
 /** First matching category for a person's words, with the word that matched. */
 export function categoryFromWords(text: string): { category: CategoryId; word: string } | null {
   for (const [category, re] of WORDS) {
@@ -211,9 +220,6 @@ function placeAlone(m: ValuedMovement, d: Description, payee: string): Draft | n
   if (m.via === 'ft_transfer_call') {
     return { category: 'protocols', rule: 'into_protocol', basis: 'chain', evidence: `ft_transfer_call sent the tokens into contract ${m.to}` };
   }
-  if (sameNameAccount(m.dao, payee)) {
-    return { category: 'own_wallets', rule: 'own_name', basis: 'account_name', evidence: `the payee ${payee} has the DAO's own name, so it is treated as the organization's own account` };
-  }
   if (words) {
     const cat = CATEGORIES[words.category];
     return { category: words.category, rule: 'memo_words', basis: 'memo', evidence: `the proposal says “${words.word}” → ${cat.name}` };
@@ -252,7 +258,7 @@ export function classify(movements: ValuedMovement[]): Classified[] {
   }
 
   return drafts.map(({ m, d, payee, draft, via }) => {
-    const base = { ...m, payee, memoText: d.text, intended: draft?.category ?? 'suspense' };
+    const base = { ...m, payee, memoText: d.text, intended: draft?.category ?? (sameNameAccount(m.dao, payee) ? 'own_wallets' : 'suspense') };
     if (!m.executed) return { ...base, booking: null };
     let placed: Draft = draft ?? { category: 'suspense', rule: 'unexplained', basis: 'none', evidence: d.text ? 'the proposal does not say what the payment was for' : 'the proposal has no description' };
     if (!draft) {
@@ -268,6 +274,9 @@ export function classify(movements: ValuedMovement[]): Classified[] {
         };
       } else if (categories.size > 1) {
         placed = { ...placed, evidence: `${placed.evidence}; earlier payments to ${payee} were placed in ${[...categories].map((c) => CATEGORIES[c].name).join(' and ')}` };
+      } else if (sameNameAccount(m.dao, payee)) {
+        // Weakest inference, so it comes last: a person can own the account named like the DAO.
+        placed = ownNamePlacement(payee);
       }
     }
     const category = CATEGORIES[placed.category];

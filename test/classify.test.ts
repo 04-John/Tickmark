@@ -131,6 +131,13 @@ test('a payee with the DAO’s own name is the organization’s own account; loa
   assert.deepEqual([lent!.booking?.category, lent!.booking?.debit.code], ['loans', '1950']);
 });
 
+test('the own-name inference is the weakest: words and payee history about that account come first', () => {
+  const pay = (id: number, description: string) => proposal(id, { Transfer: { token_id: '', receiver_id: 'acme.near', amount: near(5), msg: null } }, description);
+  const [honorarium, later] = run(pay(70, 'Honorarium'), pay(71, 'nov/dec'));
+  assert.deepEqual([honorarium!.booking?.category, honorarium!.booking?.basis], ['payroll', 'memo'], 'a person can own the account named like the DAO');
+  assert.deepEqual([later!.booking?.category, later!.booking?.basis], ['payroll', 'payee_history']);
+});
+
 test('amounts that are not whole numbers cannot move money and are left out', () => {
   const bad = proposal(63, { Transfer: { token_id: '', receiver_id: 'x.near', amount: '10000.000000000002', msg: null } }, '');
   assert.deepEqual(decodeProposal(fx.DAO, bad), []);

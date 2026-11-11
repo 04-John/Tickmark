@@ -83,9 +83,9 @@ Each journal entry has two lines that balance to the cent. Tokens without a trus
 The first rule that applies wins, and every line keeps its evidence:
 
 1. **Chain facts.** Money sent to the treasury itself or to its own NEAR Intents balance, NEAR wrapped into wNEAR, NEAR staked, storage deposits, Trezu swaps (an `asset-exchange` sent to a 1Click deposit address, with its quote), and tokens sent into a protocol. None of these is spending.
-2. **The payee's own-name account.** `x.near` paid by `x.sputnik-dao.near` is the organization's own account.
-3. **Words a person wrote** in the proposal, checked in a fixed order: refund, loan, multisig or top-up (own wallets), an exchange name, protocol fee, grant, bounty or prize, salary or honorarium, invoice or services (also `inv 47`), travel or expenses, hosting or software, marketing or events, storage or gas.
-4. **The payee.** Another Sputnik DAO, or an account that words already placed, but only when all those earlier placements agree.
+2. **Words a person wrote** in the proposal, checked in a fixed order: refund, loan, multisig or top-up (own wallets), an exchange name, protocol fee, grant, bounty or prize, salary or honorarium, invoice or services (also `inv 47`), travel or expenses, hosting or software, marketing or events, storage or gas.
+3. **The payee.** Another Sputnik DAO, or an account that words already placed, but only when all those earlier placements agree.
+4. **The payee's own-name account.** When nothing else applies, `x.near` paid by `x.sputnik-dao.near` is treated as the organization's own account. This comes last because a person can own an account named like the DAO.
 5. **Otherwise Suspense** (1999), with the reason. The treasurer is asked about it.
 
 A Trezu payment names its recipient, and on chain the money goes to a 1Click deposit address that forwards it. The named recipient is the payee, and the evidence says so.
