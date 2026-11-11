@@ -113,9 +113,27 @@ Each comes from a strict rule, is phrased as a question, and lists its facts:
 
 Every run reads the chain at one block. The report records that block, the price snapshot dates and the Tickmark version, and its fingerprint is the SHA-256 of its canonical JSON (sorted keys, no spaces). `verify` rebuilds the books at that block from an archival node and compares fingerprints.
 
-## Close the books by vote *(building)*
+## Close the books by vote
 
-Tickmark drafts a normal proposal for the DAO that carries the report's fingerprint. The council approves it with the treasury's own voting rules: no new multisig, no new contract. Anyone can then run `verify` on the report the DAO voted on.
+The council approves the books with the treasury's own governance. There's no new multisig and no new contract.
+
+**Do:**
+
+```sh
+node cli/tickmark.ts close out/daocubator/report.json --signer <your-account.near>
+```
+
+**See:**
+- the proposal: an ordinary Sputnik proposal of kind `Vote`, text only, that moves no money;
+- whether your account may submit it under the DAO's policy;
+- the exact `near` CLI command a council member runs to submit it. Tickmark never signs.
+
+The proposal's description carries `Tickmark Report: sha256:<fingerprint>` and the block it was made at. The council then votes as usual.
+
+**Do:** `node cli/tickmark.ts closings <dao>`
+**See:** every close-the-books proposal of that DAO, its status, and how each member voted.
+
+`verify report.json` also shows any proposal in the DAO that carries the report's fingerprint, with its votes. So one command proves both things: the books match the chain, and the council approved these exact books.
 
 ## Private suggestions for Suspense
 
