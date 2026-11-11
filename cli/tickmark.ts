@@ -5,9 +5,10 @@ import { writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { centsToString, journal, statement, type JournalEntry } from '../core/books.ts';
 import { classify } from '../core/classify.ts';
-import { fetchMovements } from '../core/dao.ts';
+import { fetchMovements, fetchPolicy } from '../core/dao.ts';
 import { kindName } from '../core/decode.ts';
 import { datePayments, TxIndex } from '../core/history.ts';
+import { auditQuestions, type QuestionKind } from '../core/questions.ts';
 import { ARCHIVAL_RPC, Rpc, type Network } from '../core/rpc.ts';
 import { TokenBook } from '../core/tokens.ts';
 import { bookingTime, type Proposal } from '../core/types.ts';
@@ -37,7 +38,7 @@ const cut = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…' 
 const oneLine = (s: string) => s.replace(/<br>/gi, ' ').replace(/\s+/g, ' ').trim();
 
 /** Reads the DAO, dates the payments and values them. Shared by every command. */
-async function load(dao: string, options: Options): Promise<{ sinceDate: string; proposals: Proposal[]; valued: ValuedMovement[]; dating: string }> {
+async function load(dao: string, options: Options): Promise<{ sinceDate: string; proposals: Proposal[]; valued: ValuedMovement[]; dating: string; proposalPeriodMs?: number }> {
   const prices = loadPriceBook();
   const sinceDate = options.since ?? prices.range('near')?.from;
   if (!sinceDate) throw new Error('No NEAR prices in data/prices; run npm run prices:update');
@@ -60,7 +61,9 @@ async function load(dao: string, options: Options): Promise<{ sinceDate: string;
     dating = `${r.approvalVotes} from the approving vote, ${r.bulkPaidBlocks} from the bulk line's paid block, ${r.submissionDates} not found (submission date used)`;
     for (const problem of r.problems.slice(0, 3)) console.error(`  warning: ${problem}`);
   }
-  return { sinceDate, proposals, valued: await valueMovements(movements, new TokenBook(rpc), prices), dating };
+  const policy = await fetchPolicy(rpc, dao).catch(() => null);
+  const proposalPeriodMs = policy ? Number(BigInt(policy.proposal_period) / 1_000_000n) : undefined;
+  return { sinceDate, proposals, valued: await valueMovements(movements, new TokenBook(rpc), prices), dating, proposalPeriodMs };
 }
 
 async function scan(dao: string, options: Options) {
@@ -108,8 +111,9 @@ async function scan(dao: string, options: Options) {
 }
 
 async function books(dao: string, options: Options) {
-  const { sinceDate, valued, dating } = await load(dao, options);
+  const { sinceDate, proposals, valued, dating, proposalPeriodMs } = await load(dao, options);
   const classified = classify(valued);
+  const questions = auditQuestions(classified, proposals, { proposalPeriodMs });
   const entries = journal(classified);
   const st = statement(entries);
   const money = (cents: number) => usd(cents / 100).padStart(14);
@@ -143,12 +147,19 @@ async function books(dao: string, options: Options) {
     console.log(`\n  Largest lines in Suspense:`);
     for (const e of suspense.slice(0, options.lines ? suspense.length : 8)) printEntry(e);
   }
+  const kinds = new Map<QuestionKind, number>();
+  for (const q of questions) kinds.set(q.kind, (kinds.get(q.kind) ?? 0) + 1);
+  console.log(`\n  ${questions.length} questions for the treasurer: ${[...kinds].map(([k, n]) => `${k.replace(/_/g, ' ')} ${n}`).join(', ') || 'none'}`);
+  for (const q of questions.slice(0, options.lines ? questions.length : 12)) {
+    console.log(`    • ${q.ask}`);
+    if (options.lines) for (const f of q.facts) console.log(`        ${cut(f, 150)}`);
+  }
   if (options.lines) {
     console.log(`\n  Journal (${entries.length} entries):`);
     for (const e of entries) printEntry(e, true);
   }
   if (options.json) {
-    writeFileSync(options.json, JSON.stringify({ dao, network: options.network, since: sinceDate, statement: st, journal: entries }, null, 2));
+    writeFileSync(options.json, JSON.stringify({ dao, network: options.network, since: sinceDate, statement: st, questions, journal: entries }, null, 2));
     console.log(`\n  wrote the journal and statement to ${options.json}`);
   }
 }

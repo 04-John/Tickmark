@@ -123,6 +123,8 @@ export type Classified = ValuedMovement & {
   memoText: string;
   /** Null for movements that were not paid (rejected, failed, expired, pending). */
   booking: Booking | null;
+  /** The category the rules give this movement, paid or not (an unpaid swap is still a swap). Payee history is not used. */
+  intended: CategoryId;
 };
 
 /** Words that place a payment, checked in this order; the first category with a match wins. */
@@ -214,7 +216,7 @@ export function classify(movements: ValuedMovement[]): Classified[] {
     const recipient = trezuAction(d) === 'payment-transfer' ? d.fields.recipient?.trim() : undefined;
     const forwarded = Boolean(recipient && recipient !== m.to && d.fields['deposit address']?.trim() === m.to);
     const payee = forwarded ? recipient! : m.to;
-    const draft = m.executed ? placeAlone(m, d, payee) : null;
+    const draft = placeAlone(m, d, payee);
     const via = forwarded ? `Trezu payment to ${recipient}${networkNote(d)} through deposit address ${short(m.to)}; ` : '';
     return { m, d, payee, draft, via };
   });
@@ -222,14 +224,14 @@ export function classify(movements: ValuedMovement[]): Classified[] {
   // Payee history: categories that a person's words gave to each payee.
   const history = new Map<string, { category: CategoryId; proposalId: number; word: string }[]>();
   for (const { m, payee, draft } of drafts) {
-    if (draft?.basis !== 'memo' || CATEGORIES[draft.category].section !== 'expense') continue;
+    if (!m.executed || draft?.basis !== 'memo' || CATEGORIES[draft.category].section !== 'expense') continue;
     const list = history.get(payee) ?? [];
     list.push({ category: draft.category, proposalId: m.proposalId, word: draft.evidence });
     history.set(payee, list);
   }
 
   return drafts.map(({ m, d, payee, draft, via }) => {
-    const base = { ...m, payee, memoText: d.text };
+    const base = { ...m, payee, memoText: d.text, intended: draft?.category ?? 'suspense' };
     if (!m.executed) return { ...base, booking: null };
     let placed: Draft = draft ?? { category: 'suspense', rule: 'unexplained', basis: 'none', evidence: d.text ? 'the proposal does not say what the payment was for' : 'the proposal has no description' };
     if (!draft) {
