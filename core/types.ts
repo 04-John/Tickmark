@@ -30,6 +30,7 @@ export type Via =
   | 'ft_transfer_call' // FunctionCall ft_transfer_call: tokens sent into a protocol (deposit, swap, list funding)
   | 'intents_transfer' // NEAR Intents mt_transfer / mt_batch_transfer
   | 'intents_withdraw' // NEAR Intents ft_withdraw
+  | 'intents_deposit' // ft_transfer_call into NEAR Intents, credited to `to` (the treasury itself when the message is empty)
   | 'bulk_payment' // Trezu bulk payment list, one movement per recipient
   | 'attached_deposit'; // NEAR attached to any other function call (staking, wrapping, storage...)
 

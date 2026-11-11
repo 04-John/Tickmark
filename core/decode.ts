@@ -26,6 +26,31 @@ export function normalizeToken(id: string | null | undefined): string {
   return id.startsWith('nep141:') ? id.slice('nep141:'.length) : id;
 }
 
+/** NEAR account id rules (https://nomicon.io/DataStructures/Account): 2-64 chars, lowercase parts joined by . - _ */
+const ACCOUNT_ID = /^(?=.{2,64}$)(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
+
+export function isAccountId(value: string): boolean {
+  return ACCOUNT_ID.test(value);
+}
+
+/**
+ * Whose NEAR Intents balance an ft_transfer_call deposit credits: the account in the message
+ * (a plain account id, or JSON with receiver_id), or the sender when the message is empty or unreadable.
+ */
+export function intentsDepositOwner(msg: unknown, sender: string): string {
+  if (typeof msg !== 'string' || msg.trim() === '') return sender;
+  const text = msg.trim();
+  if (text.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(text) as { receiver_id?: unknown };
+      return typeof parsed.receiver_id === 'string' && isAccountId(parsed.receiver_id) ? parsed.receiver_id : sender;
+    } catch {
+      return sender;
+    }
+  }
+  return isAccountId(text) ? text : sender;
+}
+
 type Args = Record<string, unknown>;
 const str = (v: unknown): string | undefined => (typeof v === 'string' && v.length > 0 ? v : undefined);
 
@@ -77,6 +102,9 @@ export function decodeProposal(dao: string, p: Proposal): Movement[] {
     } else if (contract === INTENTS_CONTRACT && method === 'mt_transfer_call' && BULK_PAYMENT_CONTRACTS.has(str(args.receiver_id) ?? '') && str(args.msg) && str(args.amount)) {
       // Token list funded from the DAO's NEAR Intents balance.
       push({ token: normalizeToken(str(args.token_id)), to: str(args.receiver_id)!, amount: str(args.amount)!, via: 'bulk_payment', method, bulkListId: str(args.msg)! });
+    } else if (method === 'ft_transfer_call' && str(args.receiver_id) === INTENTS_CONTRACT && str(args.amount)) {
+      // A deposit into NEAR Intents is credited to the account named in the message, or to the sender when it is empty.
+      push({ token: contract, to: intentsDepositOwner(args.msg, dao), amount: str(args.amount)!, via: 'intents_deposit', method });
     } else if ((method === 'ft_transfer' || method === 'ft_transfer_call') && str(args.receiver_id) && str(args.amount)) {
       const via: Via = method === 'ft_transfer' ? 'ft_transfer' : 'ft_transfer_call';
       push({ token: contract, to: str(args.receiver_id)!, amount: str(args.amount)!, via, method });

@@ -58,9 +58,39 @@ test('NEAR attached to another call is an attached_deposit', () => {
   assert.deepEqual([m.via, m.method, m.to, m.token], ['attached_deposit', 'deposit_and_stake', 'validator.poolv1.near', 'near']);
 });
 
-test('ft_transfer_call is recorded with its target, and the 1 yocto security deposit is ignored', () => {
+test('a deposit into NEAR Intents with an empty message stays with the treasury', () => {
   const m = one(fx.swapDeposit);
-  assert.deepEqual([m.via, m.to, m.token], ['ft_transfer_call', 'intents.near', 'usdt.tether-token.near']);
+  assert.deepEqual([m.via, m.to, m.token], ['intents_deposit', fx.DAO, 'usdt.tether-token.near']);
+});
+
+test('a deposit into NEAR Intents for another account pays that account', () => {
+  const deposit = (msg: string) =>
+    one({
+      ...fx.swapDeposit,
+      kind: {
+        FunctionCall: {
+          receiver_id: 'wrap.near',
+          actions: [{ method_name: 'ft_transfer_call', args: Buffer.from(JSON.stringify({ receiver_id: 'intents.near', amount: '7', msg })).toString('base64'), deposit: '1', gas: '0' }],
+        },
+      },
+    });
+  assert.deepEqual([deposit('artist.near').to, deposit('artist.near').via], ['artist.near', 'intents_deposit']);
+  assert.equal(deposit('{"receiver_id":"studio.near"}').to, 'studio.near');
+  assert.equal(deposit(fx.DAO).to, fx.DAO);
+  assert.equal(deposit('not an account!').to, fx.DAO, 'an unreadable message is credited to the sender, as Intents does');
+});
+
+test('ft_transfer_call into another protocol is recorded with its target, and the 1 yocto security deposit is ignored', () => {
+  const m = one({
+    ...fx.swapDeposit,
+    kind: {
+      FunctionCall: {
+        receiver_id: 'usdt.tether-token.near',
+        actions: [{ method_name: 'ft_transfer_call', args: Buffer.from(JSON.stringify({ receiver_id: 'v2.ref-finance.near', amount: '5', msg: '' })).toString('base64'), deposit: '1', gas: '0' }],
+      },
+    },
+  });
+  assert.deepEqual([m.via, m.to], ['ft_transfer_call', 'v2.ref-finance.near']);
 });
 
 test('governance proposals move no money', () => {
