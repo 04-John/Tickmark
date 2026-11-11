@@ -1,6 +1,6 @@
 {
   "tickmark": "0.1.0",
-  "measuredAt": "2026-11-11T18:58:47.775Z",
+  "measuredAt": "2026-11-11T21:44:59.762Z",
   "since": null,
   "definitions": {
     "paidOut": "spending + Suspense, in USD: money that left the treasury for someone else (not swaps, wrapping, staking, moves between own balances, protocol or exchange deposits, own wallets, loans)",
@@ -45,1118 +45,1118 @@
       "w3xsandbox.sputnik-dao.near"
     ],
     "failed": [],
-    "lines": 2225,
-    "paidOutUsd": 99946619,
-    "unexplainedUsd": 67798506,
-    "unexplainedShare": 0.6783471629745383,
-    "undescribedUsd": 59489207,
-    "undescribedShare": 0.5952097989928598,
-    "notSpendingUsd": 95537623,
+    "lines": 2229,
+    "paidOutUsd": 99837240,
+    "unexplainedUsd": 67685291,
+    "unexplainedShare": 0.6779563512522465,
+    "undescribedUsd": 59376713,
+    "undescribedShare": 0.5947351165536032,
+    "notSpendingUsd": 95585022,
     "unpricedLines": 347,
-    "questions": 819
+    "questions": 815
   },
   "daos": [
     {
       "dao": "0xramp-zcg.sputnik-dao.near",
       "test": false,
-      "block": 224102137,
-      "fingerprint": "51db7c21a8f2a4a0c72eb7b586fa074ae15acde3c95965925ec567a21b183f30",
+      "block": 224119178,
+      "fingerprint": "f8077040916a79539951656195dd4b493acfaf01d2087ae6037d46adda2b0d1d",
       "lines": 8,
       "error": null
     },
     {
       "dao": "1csfundsadmin.sputnik-dao.near",
       "test": false,
-      "block": 224102137,
-      "fingerprint": "ddbf21956d6a55baa2f25b6f77613b8b4c738ada74e55aea45df6041f558ef2c",
+      "block": 224119177,
+      "fingerprint": "b28e510156d1c2ec7f8294b79e69d6413de09793f0b25bf72403f64e7da69433",
       "lines": 6,
       "error": null
     },
     {
       "dao": "adf-1-223344360.sputnik-dao.near",
       "test": false,
-      "block": 224102174,
-      "fingerprint": "c86e7b99dc742e1d0c64159f5a705352d5cab1f1714fe88020f334c677f1b4d9",
+      "block": 224119205,
+      "fingerprint": "c2da3ba0c341a2631365ec74961344a6544d7b16d1c79e6d5ef6c203c787587d",
       "lines": 1,
       "error": null
     },
     {
       "dao": "agentic.sputnik-dao.near",
       "test": false,
-      "block": 224102176,
-      "fingerprint": "c897e0104b8b97c754eabfac58c060dc1d77a74ec0446170145993f86f77d88d",
+      "block": 224119206,
+      "fingerprint": "9b42c8d51c6127d0adc7866eb5c39d31fac4df55339d125614a12d18a1f9e039",
       "lines": 5,
       "error": null
     },
     {
       "dao": "al.sputnik-dao.near",
       "test": false,
-      "block": 224102180,
-      "fingerprint": "3b86da3bf8e339e6bbdd15776930ea8a01f09dfb68cd7adb1544fed3950f5b6e",
+      "block": 224119211,
+      "fingerprint": "bcaa7f3cba98d5418d484dd1f7b427c8e109e4ada43f75b10edf67cdcc619705",
       "lines": 2,
       "error": null
     },
     {
       "dao": "ariz-treasury.sputnik-dao.near",
       "test": false,
-      "block": 224102187,
-      "fingerprint": "bb10345f08c33c9c95e93ab356160bff13847464810dc67931fcc589211f54c8",
+      "block": 224119215,
+      "fingerprint": "0d3c2ddc7324afdae21ba434fa337784edc95095945d94aab6ebc2cb9ef1441c",
       "lines": 3,
       "error": null
     },
     {
       "dao": "arkila.sputnik-dao.near",
       "test": false,
-      "block": 224102189,
-      "fingerprint": "a844af0f3408f66757c5e3c642ffea976306016a20f92f6218cf6d99ab4d81ef",
+      "block": 224119216,
+      "fingerprint": "da76fbc9bb43780292d6719ec4beb4317c3be5d35878979c4a665a504ca71759",
       "lines": 1,
       "error": null
     },
     {
       "dao": "astra-testers.sputnik-dao.near",
       "test": true,
-      "block": 224102193,
-      "fingerprint": "6f3d5bb0f8495d0601cd8b9b221a0ea2a58746ac690b6de5866cba285384b0ff",
+      "block": 224119221,
+      "fingerprint": "4b82fab4c164a3debf4a6c25abc0e1424d6db768429e06fb67d6bdfba6b1af78",
       "lines": 2,
       "error": null
     },
     {
       "dao": "aurorafinance.sputnik-dao.near",
       "test": false,
-      "block": 224102195,
-      "fingerprint": "170f5cc07c0920a9a75fa9a93a1b2fc9465ef0d9272f4b14adc009c68334c269",
+      "block": 224119223,
+      "fingerprint": "e3054e6a8ee702ef18f902b60c83ab3eb1f3b1103bf8415acdc9c8a8d6e22579",
       "lines": 89,
       "error": null
     },
     {
       "dao": "azaxdsa.sputnik-dao.near",
       "test": false,
-      "block": 224102198,
-      "fingerprint": "eb932ca68f0dc98df16b6f0187a949480da56a0b0c9c802c5bedaeef6c737704",
+      "block": 224119228,
+      "fingerprint": "97975a559d3b52a428c7d637080281a7949987826b5518a6790ca052cbf13a6d",
       "lines": 1,
       "error": null
     },
     {
       "dao": "bcbbcl73sxe5g6-sputnik-dao-near.sputnik-dao.near",
       "test": false,
-      "block": 224102203,
-      "fingerprint": "531f3ca8abebb8983dacee283d9e825ccf2cf05d832c450b689254ea9491f002",
+      "block": 224119233,
+      "fingerprint": "2ab9be7702246356cee55c2f29f4b7ca9b3cd5b0aa238cfbfbe42f0cb6a02570",
       "lines": 28,
       "error": null
     },
     {
       "dao": "bob.sputnik-dao.near",
       "test": false,
-      "block": 224102211,
-      "fingerprint": "05645d2804cc05800df91b1e5824e25171ba21248df08ba061bfeb28681881a2",
+      "block": 224119251,
+      "fingerprint": "3f0c47e1719b260b6212cea740dac907c3fc262f41dcf7a08ae5c4f050014cd4",
       "lines": 4,
       "error": null
     },
     {
       "dao": "bootstrap-org.sputnik-dao.near",
       "test": false,
-      "block": 224102214,
-      "fingerprint": "eb4cdc113eadff18a46a6202f2fefe0499919dac5ef545d7bd5a3bbb2dc09a9f",
+      "block": 224119252,
+      "fingerprint": "ef00b2915cc55755be625680c352bb2bb8784e06919d40cd3c3926fce7b6e2d4",
       "lines": 55,
       "error": null
     },
     {
       "dao": "braindao-treasury.sputnik-dao.near",
       "test": false,
-      "block": 224102217,
-      "fingerprint": "0ad5b303599053fa7455877c3c9d5b31640107e5376ae757209943124a012fc4",
+      "block": 224119258,
+      "fingerprint": "91b0a6ed03b73215969985248ba62671329792355d11f615ad5e65c58876f4b0",
       "lines": 15,
       "error": null
     },
     {
       "dao": "bug-finderabc.sputnik-dao.near",
       "test": false,
-      "block": 224102232,
-      "fingerprint": "c3a42ab02efa8d53a072aadab789f1ce12ddced4025c1eb443f1103bcaa43444",
+      "block": 224119278,
+      "fingerprint": "82854b3a1f16964bd6efa71a727645b4f2f376e96ac53e295ad62c7510816e8a",
       "lines": 1,
       "error": null
     },
     {
       "dao": "builder-ops.sputnik-dao.near",
       "test": false,
-      "block": 224102280,
-      "fingerprint": "7eff1f9b547c53b3600d676bb75c3070eecd860faa3ad217f8d30cf43826e158",
+      "block": 224119288,
+      "fingerprint": "5242c301f2f1a6131e9f456973fa8287644f8e3bd86ea3277f92188439a4f799",
       "lines": 21,
       "error": null
     },
     {
       "dao": "buran.sputnik-dao.near",
       "test": false,
-      "block": 224102289,
-      "fingerprint": "441290f2855603446bcbd637493ac8e7ad3c4c49bde4c4640b9470b1de1fcf30",
+      "block": 224119317,
+      "fingerprint": "938f09c27f3c372e5f6b1322c7d7d41b1187f86701e5f663815b158c47e30666",
       "lines": 1,
       "error": null
     },
     {
       "dao": "burrow.sputnik-dao.near",
       "test": false,
-      "block": 224102294,
-      "fingerprint": "b37cfab68ea892ae852c24b411e9bbe855af168b3128c7ed5127136bf78895be",
+      "block": 224119323,
+      "fingerprint": "87c1f17679b9400d5fcb031436065f939f3fd59759d7093c5675e36acbc95db6",
       "lines": 78,
       "error": null
     },
     {
       "dao": "bwid.sputnik-dao.near",
       "test": false,
-      "block": 224102300,
-      "fingerprint": "ff0a9d3b9ab9982e4d24d86fce49a21705ea679605d4f0e367578ef85ebacf2f",
+      "block": 224119325,
+      "fingerprint": "3e5e5eebef4598d3bdbdf528119c32952d713a40a3175720053c09fb506ec649",
       "lines": 2,
       "error": null
     },
     {
       "dao": "cariometer.sputnik-dao.near",
       "test": false,
-      "block": 224102315,
-      "fingerprint": "7d73fa4613ce8c67119fbf2dbef1f5fd53401aa005714da38b106c39df1fcaeb",
+      "block": 224119334,
+      "fingerprint": "245730b4369ecd8692d0e87af0369781b052ab6f8347d9e27c0b0121f885e830",
       "lines": 1,
       "error": null
     },
     {
       "dao": "chabak.sputnik-dao.near",
       "test": false,
-      "block": 224102325,
-      "fingerprint": "b2103ba2062e21b898ecf38819c52135345beea84bf26e5af866d3f825bd34c5",
+      "block": 224119342,
+      "fingerprint": "72b44555d7ca34e112a2a2f869165ba1fa469b9e9bf25d944eff35cd73b97656",
       "lines": 7,
       "error": null
     },
     {
       "dao": "chicagonode.sputnik-dao.near",
       "test": false,
-      "block": 224102339,
-      "fingerprint": "e44f3f813ac94ff7e3c4c2a688a5f1888b32384c9ca2282861e7fb48892d96ff",
+      "block": 224119367,
+      "fingerprint": "1aaf1ce74388a9fd83e0ec15b89e8940319a553c4c7b0f1c1d132d37cbc14df8",
       "lines": 9,
       "error": null
     },
     {
       "dao": "cn4.sputnik-dao.near",
       "test": false,
-      "block": 224102382,
-      "fingerprint": "45ddf650ebdc063fae53bb309f6d4ad51806add2f8e7bd52a1e9f81689e28526",
+      "block": 224119379,
+      "fingerprint": "fa8ca88e8ac26af04340bc6fbdfa78bed05fba5bac03b960863da7b1d1f8e121",
       "lines": 6,
       "error": null
     },
     {
       "dao": "confidential-staging.sputnik-dao.near",
       "test": true,
-      "block": 224102389,
-      "fingerprint": "751a31a4b86a5c8501d1231e14304094f67a8c2430eaba38c794352b1d6bd13f",
+      "block": 224119386,
+      "fingerprint": "8f244de7d40dd86fea3294a937c10c5e21f454ad4c973c07efe8b5b2ba666f42",
       "lines": 7,
       "error": null
     },
     {
       "dao": "crocus.sputnik-dao.near",
       "test": false,
-      "block": 224102433,
-      "fingerprint": "cd1a66ee07064baa0c5198988e798094864809ce69fe8d4c98bd74d6f8dd08ca",
+      "block": 224119415,
+      "fingerprint": "6f3d7e94b15ea009c06412773f6050991150a5215a89d362816ac9b7dd278d6a",
       "lines": 10,
       "error": null
     },
     {
       "dao": "dalang-safe.sputnik-dao.near",
       "test": false,
-      "block": 224102448,
-      "fingerprint": "262725744bef3799095e42b34637831c67641ae1930ffdd10cd535be249885ed",
+      "block": 224119432,
+      "fingerprint": "f304aa0072753f626c64e2052dc7f3de06651522e98ca99ba887608b547a49e4",
       "lines": 5,
       "error": null
     },
     {
       "dao": "daocubator.sputnik-dao.near",
       "test": false,
-      "block": 224102464,
-      "fingerprint": "ebba1231aa3c3897ee507a3b73c49d6ef560979ffc709f49df31eb1abfdadd15",
+      "block": 224119449,
+      "fingerprint": "d443b9fe5d61b15ade2457656d06b1a034da5b6b63890c3dc872c1baa5941c59",
       "lines": 20,
       "error": null
     },
     {
       "dao": "daorecords.sputnik-dao.near",
       "test": false,
-      "block": 224102514,
-      "fingerprint": "75fa0a425c66ca1c50d4959a7251747642b8db0fa4622b0af0aa2267dc139e2c",
+      "block": 224119465,
+      "fingerprint": "7827add8ea66ad0eae6182bdc529018b0fb8c9a9b20da1abea050c45068dcb2f",
       "lines": 1,
       "error": null
     },
     {
       "dao": "das-willies.sputnik-dao.near",
       "test": false,
-      "block": 224102523,
-      "fingerprint": "09dbb2657fd3bb0886a39819c1915b8a07b9c5ea1cad218ebca0c1bd541002f3",
+      "block": 224119480,
+      "fingerprint": "10bacf51db2df4c1b218982ef4b55298c6c2db5a29aa0287fb33b95aa2d9d80d",
       "lines": 4,
       "error": null
     },
     {
       "dao": "deer.sputnik-dao.near",
       "test": false,
-      "block": 224102552,
-      "fingerprint": "abf61263c34ede6119f83d658df02c6148646f3bd627416ba308e1feb7cebcea",
+      "block": 224119487,
+      "fingerprint": "db0b2f03268ab9f62351532cde963984122a2804615e2a3d6f780b18186cf305",
       "lines": 1,
       "error": null
     },
     {
       "dao": "delbird.sputnik-dao.near",
       "test": false,
-      "block": 224102563,
-      "fingerprint": "882e956d5f8129b79367b8eb9ccdd7a7f5c8d4526a98e7185c3e21b006833780",
+      "block": 224119494,
+      "fingerprint": "5d2dfda2c655f3a987b8a3d1108ccd37f5ad9f06d21f0566a7d457adf76bb6db",
       "lines": 1,
       "error": null
     },
     {
       "dao": "dll-treasury.sputnik-dao.near",
       "test": false,
-      "block": 224102566,
-      "fingerprint": "70b863bd4868ec0c6f6b2b549b583daf77a536b674474eb78c6337ebc285c47a",
+      "block": 224119498,
+      "fingerprint": "97c120f41ae426bec93280e977956850f5aedcd2f037de3506c2dd2c7386b501",
       "lines": 226,
       "error": null
     },
     {
       "dao": "docket-demo.sputnik-dao.near",
       "test": true,
-      "block": 224102569,
-      "fingerprint": "b1877a7ec7b0c5d4f52ea802399b99c34e46955ab7655879e417556cc0728585",
+      "block": 224119518,
+      "fingerprint": "5f28a2945dd69d5790195efb20afe1cb6971babf59448a239faec4b00a846dce",
       "lines": 1,
       "error": null
     },
     {
       "dao": "dti-lab-jj.sputnik-dao.near",
       "test": false,
-      "block": 224102576,
-      "fingerprint": "d47ecb883ef3847c7670ddfbe090b3803f70a57df9c1e70d88d1fbd0ed448f72",
+      "block": 224119527,
+      "fingerprint": "467d98a1f952597c3207c5db6c4c86c8ccf2dbe3c46ed5cfb95b515292edd2c2",
       "lines": 3,
       "error": null
     },
     {
       "dao": "dvzat.sputnik-dao.near",
       "test": false,
-      "block": 224102582,
-      "fingerprint": "b6ff5e9313364d50e85ca211c8595db92cdcd3a1c12af91ad8ee1e152e3734a5",
+      "block": 224119532,
+      "fingerprint": "5afdb2665db6356d29255361c1c650de69c8ce64f2765ddad46def70bb7ad28b",
       "lines": 2,
       "error": null
     },
     {
       "dao": "earmark.sputnik-dao.near",
       "test": false,
-      "block": 224102601,
-      "fingerprint": "98769b7dd6bed609ed03dcee6275d8399a86f43d913dfb65e92e062e2a494c93",
+      "block": 224119535,
+      "fingerprint": "97c68278b9824ede4073f685146f9ee933182a3ca139f674fece41af5a9049fb",
       "lines": 4,
       "error": null
     },
     {
       "dao": "elabarbiubiu.sputnik-dao.near",
       "test": false,
-      "block": 224102610,
-      "fingerprint": "f6dfc710c734b764c6fd1dff24ca3143febcc83b80a05d1f149cab70f08be26e",
+      "block": 224119537,
+      "fingerprint": "b5152a79e80b2aa219a09807650face8f46210beb03e83b0c8ac2f1467996e1d",
       "lines": 1,
       "error": null
     },
     {
       "dao": "ergo-public.sputnik-dao.near",
       "test": false,
-      "block": 224102614,
-      "fingerprint": "fd035234a218a68ac2bb13f706f4d3f05edbc89f332393780f193c3a47b3a4d9",
+      "block": 224119542,
+      "fingerprint": "152977b1e00c360d485d2ec46bcd34f0d30b2bc4d37f1ec153ee9ff2451fc742",
       "lines": 11,
       "error": null
     },
     {
       "dao": "first-passkey-treasury-staging.sputnik-dao.near",
       "test": true,
-      "block": 224102615,
-      "fingerprint": "72aca534b4d6b47725b6f673040e67f0743dd108776e1864040960b7c525c7d0",
+      "block": 224119543,
+      "fingerprint": "0858c212ac69db699e1913cd16c6170f5fe4f4cb8b6d9b3ea9e3913fdda6ec13",
       "lines": 3,
       "error": null
     },
     {
       "dao": "gosun.sputnik-dao.near",
       "test": false,
-      "block": 224102625,
-      "fingerprint": "31950dc6cf7ea090c8b13445613bd3fed18e21c970256a0095ed929f7c4b5443",
+      "block": 224119565,
+      "fingerprint": "2185505ea4b063a7db4dd22113cfa6bd6dc9210a1a7b0452ca6689c157a059ab",
       "lines": 3,
       "error": null
     },
     {
       "dao": "harmonic-guild-v1.sputnik-dao.near",
       "test": false,
-      "block": 224102627,
-      "fingerprint": "090286227cf5015d707029dbd8a0c1bb1572286e5c8077dc2b2adc7f14f9a12d",
+      "block": 224119559,
+      "fingerprint": "985e43903e525778c15165e7ea12b41dfa59de8cb0a70fdc300ed75c2292bef3",
       "lines": 3,
       "error": null
     },
     {
       "dao": "houseofstake-ops.sputnik-dao.near",
       "test": false,
-      "block": 224102637,
-      "fingerprint": "59637457b2e468730a5b24a4c89af748e77036a84d995ae93158b8574f091833",
+      "block": 224119584,
+      "fingerprint": "2f6eec4befb40b7f886dce17977a574f482bd89633b7394319bbf31e255932d0",
       "lines": 28,
       "error": null
     },
     {
       "dao": "human.sputnik-dao.near",
       "test": false,
-      "block": 224102639,
-      "fingerprint": "b53f2fcb165ad8a85123e07c89bbffaab0107dff9114f49b4aa3b50dda585173",
+      "block": 224119597,
+      "fingerprint": "346a1fccb64de0b7c666ed1a935bcf5ba4b92809e388568717e2de6f15a516e2",
       "lines": 2,
       "error": null
     },
     {
       "dao": "hwb.sputnik-dao.near",
       "test": false,
-      "block": 224102651,
-      "fingerprint": "5e7a89e47e0b6b4a19a057533c3a4981c171e7081bdf3c4a796d43d03a3bd3ea",
+      "block": 224119600,
+      "fingerprint": "f4d15a8b5cbff8a2ea38bc6ccb6c06b2f7795f169343042cf024381d00c270af",
       "lines": 18,
       "error": null
     },
     {
       "dao": "i1502test.sputnik-dao.near",
       "test": true,
-      "block": 224102657,
-      "fingerprint": "b6093f0e6aec2c0d40eaff1311e41d7ce5e7a9b18774f833e90e5e2e4f6a8f1b",
+      "block": 224119606,
+      "fingerprint": "e222264a9fd3b53009685976497bddac2816387d2980712489d8b9a89fb1c132",
       "lines": 3,
       "error": null
     },
     {
       "dao": "i5380burn1.sputnik-dao.near",
       "test": false,
-      "block": 224102672,
-      "fingerprint": "a504dd194f1c55bd509df91b9003c1d2bd8cbe0472b437a22e81731e25d45a37",
+      "block": 224119613,
+      "fingerprint": "1c2967e63304b19787a7a0622242094443e094b7a982d591982a70079f0e7e4c",
       "lines": 1,
       "error": null
     },
     {
       "dao": "illumaheart.sputnik-dao.near",
       "test": false,
-      "block": 224102677,
-      "fingerprint": "9f70ac9081f3873962e59fe35255e83e08101b302ee366fae9e6f2ff7c318b70",
+      "block": 224119618,
+      "fingerprint": "d48c57ad825a5710e9ed67923f9a1ca84c65566248bb67615351a3ad380657cc",
       "lines": 3,
       "error": null
     },
     {
       "dao": "india.sputnik-dao.near",
       "test": false,
-      "block": 224102677,
-      "fingerprint": "1485f89fe00806b484553172b833da7a44c0da812bf45c854cf386f86a4f898f",
+      "block": 224119624,
+      "fingerprint": "8d93879cb4e6a249d7f245a9b97e47e0e5167ceef04a274f46f70d6983e9e88a",
       "lines": 18,
       "error": null
     },
     {
       "dao": "jasnah-treasury.sputnik-dao.near",
       "test": false,
-      "block": 224102686,
-      "fingerprint": "5c5f55d35ba3fdca29d3001a444cdd668368ae3d69e12d228320ffd89824262b",
+      "block": 224119629,
+      "fingerprint": "4f5e4ea85c0af1706ef8cee4cd7599e477ad7c425f00596c3ec733990099b80d",
       "lines": 60,
       "error": null
     },
     {
       "dao": "jimmygu.sputnik-dao.near",
       "test": false,
-      "block": 224102727,
-      "fingerprint": "dac4ba5b7493627b3f197b5c0cae9a21d35f0240c04aec2661842bd626d663df",
+      "block": 224119639,
+      "fingerprint": "e3830c90660afa9bd054579b0babd69ed0a7741e89c318684e7f454dc543a4f2",
       "lines": 4,
       "error": null
     },
     {
       "dao": "justhoot.sputnik-dao.near",
       "test": false,
-      "block": 224102735,
-      "fingerprint": "9b5f11ccecf0c196f8ee57e60ff5ec3e37d3edcdb466560cd5edda71832cc7ec",
+      "block": 224119645,
+      "fingerprint": "18a98913b29cfb1205c29937b115a470cf0e4839bbe2d002f2f7ce368bd676c2",
       "lines": 22,
       "error": null
     },
     {
       "dao": "kite-demo.sputnik-dao.near",
       "test": true,
-      "block": 224102738,
-      "fingerprint": "bc5bf516ed65982a6f81f5c1ac23381393d9839447e67cbe28f447c9307798d6",
+      "block": 224119652,
+      "fingerprint": "a39faa032a2bd95475103106baf6fd4df9718b3a4c418d63ac8afffb03bdaab0",
       "lines": 12,
       "error": null
     },
     {
       "dao": "krate.sputnik-dao.near",
       "test": false,
-      "block": 224102771,
-      "fingerprint": "eced407c701bfc04afa8e05122289dbf821def755002fd681314c0489b9ed252",
+      "block": 224119663,
+      "fingerprint": "42650f973a323f70b4e93aa617f774fce864ddf3ad62d95c0e7240904fbf851a",
       "lines": 1,
       "error": null
     },
     {
       "dao": "krate27.sputnik-dao.near",
       "test": false,
-      "block": 224102779,
-      "fingerprint": "3a97f074a47c628ce3fdd67a95b6f17f352be7e7d5d3731faaad8597ca27e5b6",
+      "block": 224119666,
+      "fingerprint": "c12e323e7f5b8e5ced1c51e7500bc671bcce5c3f9582ea3061dafae0046d0fcb",
       "lines": 2,
       "error": null
     },
     {
       "dao": "ktp93984056.sputnik-dao.near",
       "test": false,
-      "block": 224102783,
-      "fingerprint": "9415a7d22accc118af76430c68d3860e6330a1d02d8ac6b802795c0c5ea21b6a",
+      "block": 224119671,
+      "fingerprint": "4aecb06f13c6df6026f53dc4a092d9639629662cc956c794910161ecfb3c0a44",
       "lines": 1,
       "error": null
     },
     {
       "dao": "ledgertest.sputnik-dao.near",
       "test": true,
-      "block": 224102788,
-      "fingerprint": "9cb535414f855c78ad6868cf998d4eeb9d534ad1ba407a24e3a9f53048c87c3b",
+      "block": 224119679,
+      "fingerprint": "86119afdadbbacde2f86277a959769f0e5c5b7633ef5dc7e3928d154a2565846",
       "lines": 1,
       "error": null
     },
     {
       "dao": "leo10.sputnik-dao.near",
       "test": false,
-      "block": 224102790,
-      "fingerprint": "703be9490e8432bffa00ff5e8afe548f63cc8489ee08e5ca42dbfb89a0d9d0c6",
+      "block": 224119679,
+      "fingerprint": "4b054bd48274f77a9cca0a4a3655a0eb91eb12218371a016ed902e61c6ff0806",
       "lines": 9,
       "error": null
     },
     {
       "dao": "lesik-o.sputnik-dao.near",
       "test": false,
-      "block": 224102804,
-      "fingerprint": "82d5256c71acd69b7484b8004d88a13feaed3aa4294709863eba72e669e90431",
+      "block": 224119750,
+      "fingerprint": "33abe1bea4c1ae946ab48db62478302d2344178390537e9550782870a5c7952b",
       "lines": 11,
       "error": null
     },
     {
       "dao": "lesik_o.sputnik-dao.near",
       "test": false,
-      "block": 224102808,
-      "fingerprint": "192a00ecee7806e5c9ca78b8108b0fea3275e3d932a361aa5dc46e97452b2dac",
+      "block": 224119756,
+      "fingerprint": "464a6e0c04642db88253955437c3fd05aad80119f98df60c34dc69ff3f60dd87",
       "lines": 30,
       "error": null
     },
     {
       "dao": "lesyk.sputnik-dao.near",
       "test": false,
-      "block": 224102815,
-      "fingerprint": "14fc1c30df8cecb5b626a7b039e1328d5795fefc43b8943f8105d5bd00bcf3c9",
+      "block": 224119766,
+      "fingerprint": "5f14417fbca931afebdbeb399b609179e55338781b3ed0ad04063cf99155704e",
       "lines": 3,
       "error": null
     },
     {
       "dao": "linear-gov.sputnik-dao.near",
       "test": false,
-      "block": 224102833,
-      "fingerprint": "6f52203e303212acf457601fb2beab871fb29eb6c0c988195f690c93cd392216",
+      "block": 224119768,
+      "fingerprint": "59d26a1351752ab1afcb45ec9174cb7b2e8cd36f51aa306c8153eeb740adaa0e",
       "lines": 1,
       "error": null
     },
     {
       "dao": "lituus.sputnik-dao.near",
       "test": false,
-      "block": 224102837,
-      "fingerprint": "44d2b6bb8f98fade160f3c4db997c121c267aaa8e17084a4ea02a043d62518a2",
+      "block": 224119773,
+      "fingerprint": "2bc21628157e50153b66aea590583554410abed5e8f7da3b48713e65a615a3be",
       "lines": 1,
       "error": null
     },
     {
       "dao": "manexus.sputnik-dao.near",
       "test": false,
-      "block": 224102852,
-      "fingerprint": "d1e9c8e0825e6e39f5d393e0fb576083725473c70cb608ac95e66def067b02d6",
+      "block": 224119777,
+      "fingerprint": "3f57dadaa7deff95208ddf96a6bedfecb4673903f24abdab425854cc1ec3e3d6",
       "lines": 2,
       "error": null
     },
     {
       "dao": "maple-gecko-2846.sputnik-dao.near",
       "test": false,
-      "block": 224102863,
-      "fingerprint": "99bd58f65d44324217548415bdb53896fcf08209c445758ea5d156a24eb68ee6",
+      "block": 224119780,
+      "fingerprint": "427c2f3180473942257ac5cd2f14a82eafe9f90cc18fdd32d532d7ed6108b6cd",
       "lines": 1,
       "error": null
     },
     {
       "dao": "mark_treasury.sputnik-dao.near",
       "test": false,
-      "block": 224102880,
-      "fingerprint": "d7e855d559ea2685f6ba022c3646cb43f72d9a2c34b2dd46db42dee91bae35fe",
+      "block": 224119784,
+      "fingerprint": "62b21d7b2ef4991f16b87edc88c6d7b0499420a9a24998d2009f13beab85023a",
       "lines": 1,
       "error": null
     },
     {
       "dao": "marmaj-gaming.sputnik-dao.near",
       "test": false,
-      "block": 224102916,
-      "fingerprint": "98da360ac891c7081a7c436032cc507803044aed65981c697f91bad818d71ca8",
+      "block": 224119787,
+      "fingerprint": "8064cac2f06af82921008e9ad540b5093179fa7953086486d696cbc77ba3d8ad",
       "lines": 3,
       "error": null
     },
     {
       "dao": "megha-near.sputnik-dao.near",
       "test": false,
-      "block": 224104975,
-      "fingerprint": "ba853ed93f02078ec692356e3fad68d26f3742a48a6d87aee1d78b1e0bf4e240",
+      "block": 224119797,
+      "fingerprint": "ec765e8558d7fd9df485a1105d38679ba9b8d02a417d545523ed5e37aa5a9845",
       "lines": 3,
       "error": null
     },
     {
       "dao": "memdexdao001.sputnik-dao.near",
       "test": false,
-      "block": 224102998,
-      "fingerprint": "e4ff57276473615b9bd31a2f01345e4a5af66d29efabbb3ce0b5e7c70e5c38d8",
+      "block": 224119802,
+      "fingerprint": "2678dfa0a8f8bd2bc368a0d1453dee4b0b84460fcbbd0ac62d9012ad0114f656",
       "lines": 12,
       "error": null
     },
     {
       "dao": "meta-pool.sputnik-dao.near",
       "test": false,
-      "block": 224103039,
-      "fingerprint": "411254a91dd10c61a8a02148f5926e4ca49fca85079215c48018d7116cecda68",
+      "block": 224119806,
+      "fingerprint": "c7bd92e8bbf8c7ea44a25cce13d3b2af74cded715ad2a4a1849f08f32de89efc",
       "lines": 2,
       "error": null
     },
     {
       "dao": "meteor.sputnik-dao.near",
       "test": false,
-      "block": 224103054,
-      "fingerprint": "4fa6560ef91e11dd935ea235e046a48673ab88130067c07271f8b9382bf77e25",
+      "block": 224119813,
+      "fingerprint": "886a8081874640ab7f93937cd59ee9192fb10f8c3df1df47f17ce1d464134cca",
       "lines": 14,
       "error": null
     },
     {
       "dao": "mic.sputnik-dao.near",
       "test": false,
-      "block": 224103110,
-      "fingerprint": "54c75eb059ff6624f9665cc5b49f961969ef86c96e7c7c7fc19294928ab40b99",
+      "block": 224119820,
+      "fingerprint": "80bdaa9a116d441b61565116d18f868a54dca288f5f99e265f73ae650bddb258",
       "lines": 132,
       "error": null
     },
     {
       "dao": "mobile.sputnik-dao.near",
       "test": false,
-      "block": 224103142,
-      "fingerprint": "97fb8ca6e451cf0bc7d328653256dfb48394c76c4097a2a7fea194c8929a4a9e",
+      "block": 224119824,
+      "fingerprint": "c0ab0522f9c5431f30055f90759e91a2fb84d19151758fcf17de4cbbff2bb9ad",
       "lines": 1,
       "error": null
     },
     {
       "dao": "moving-test.sputnik-dao.near",
       "test": true,
-      "block": 224103147,
-      "fingerprint": "a4bff15682c4f20001b9eeac6860df4c27ac2db0bad67fcc0c1c5ec2515668b7",
+      "block": 224119829,
+      "fingerprint": "45b0de138a6736eb1f7f963d9ecc902f6a09cdf58c97d46847e801ec8f611939",
       "lines": 5,
       "error": null
     },
     {
       "dao": "multiagency.sputnik-dao.near",
       "test": false,
-      "block": 224103167,
-      "fingerprint": "d239b882d89de45e6747105b879aa62cdcc5cf3631a9aadba4083575db944d6d",
+      "block": 224119834,
+      "fingerprint": "923376e9fd961d941f10a8fd28e74e6ec07a5ce573c8d9edcbb1d424a874f079",
       "lines": 70,
       "error": null
     },
     {
       "dao": "my-testing-treasury2.sputnik-dao.near",
       "test": true,
-      "block": 224103185,
-      "fingerprint": "27e15dca35796a3115b3fda7c39bdb786e8e747658ee55488718e7c29c7f51ce",
+      "block": 224119843,
+      "fingerprint": "2b9e61c8e9b8c8f65879589f390c74957dbd550450fb7654aa7c8a8093d8d3fd",
       "lines": 6,
       "error": null
     },
     {
       "dao": "n1-staking.sputnik-dao.near",
       "test": false,
-      "block": 224103204,
-      "fingerprint": "cf360bfeb7b7c379f14b1ed365badc3d12cc274cadbb552c1a79774721951738",
+      "block": 224119846,
+      "fingerprint": "1fc2cdeabab994802344dcd0577f8b7621c42525205ed16f7b2689a6a026b701",
       "lines": 22,
       "error": null
     },
     {
       "dao": "n1-treasury.sputnik-dao.near",
       "test": false,
-      "block": 224103209,
-      "fingerprint": "b1c1e43e279d6c4fd762340394d86ed9db4f62583684e3bf6f3713386ce89c38",
+      "block": 224119855,
+      "fingerprint": "0d4f6987fbe1b9ece9bffe471b4e4457a1bd9d94174f242cfb3676cc1b66f92e",
       "lines": 207,
       "error": null
     },
     {
       "dao": "ndctrust.sputnik-dao.near",
       "test": false,
-      "block": 224103262,
-      "fingerprint": "157fd7ba9bde92d0c684d149ebff6d114f04df8842c448df62204c1da10abb1f",
+      "block": 224119915,
+      "fingerprint": "5af81eb768a1a2860bcdd3a148e906cb91ded212695c6e64a72ae40babd42e13",
       "lines": 56,
       "error": null
     },
     {
       "dao": "near-ecuador.sputnik-dao.near",
       "test": false,
-      "block": 224103283,
-      "fingerprint": "395005e02b70596aa685c04e9383a6895f9b2dd47ada959e9e0c96014f841c6b",
+      "block": 224119953,
+      "fingerprint": "dfa1974bc0e0174f1710d9a62a870e44977caf384631524b07751f871d16b10c",
       "lines": 1,
       "error": null
     },
     {
       "dao": "near-prime.sputnik-dao.near",
       "test": false,
-      "block": 224103328,
-      "fingerprint": "06ab42b3836fda667eb8201a9b263fb2c6163a4e67c3494cb68daea3d614de54",
+      "block": 224119958,
+      "fingerprint": "e10140a9fd65134a042b2ee4278facc08ab0d3975f811ce35c26347fdb56f226",
       "lines": 71,
       "error": null
     },
     {
       "dao": "nearmerchstore.sputnik-dao.near",
       "test": false,
-      "block": 224103341,
-      "fingerprint": "3bfd95aba7ed913731529a02c25ef71055a965ca01e64c59669912d921dd0a98",
+      "block": 224119962,
+      "fingerprint": "d8786a8827e84896ea4ea39a90d390995c7ebae4a8628cec85cd4b4eba383000",
       "lines": 3,
       "error": null
     },
     {
       "dao": "nearn-staging.sputnik-dao.near",
       "test": true,
-      "block": 224103358,
-      "fingerprint": "7de5b794b84f0d49e856223faa3d4f2db8d4d475fe6e55e28fefb874e31bb0d3",
+      "block": 224119974,
+      "fingerprint": "3caa4e8a4d6751eb456b44e241f29884714145235bfbfbd03cd49cd7a656feb7",
       "lines": 32,
       "error": null
     },
     {
       "dao": "nearukraine-test13.sputnik-dao.near",
       "test": true,
-      "block": 224103400,
-      "fingerprint": "d0e94de176b7d2761b1e34189f9ffce383dd717e26f9bcd59c93e82d567d0456",
+      "block": 224120033,
+      "fingerprint": "2ecf1f7314125160a7e7bcaff16b3e4b3705cafed9e847cb4ddc028fb66a0896",
       "lines": 3,
       "error": null
     },
     {
       "dao": "nearukraine-test6-guild.sputnik-dao.near",
       "test": true,
-      "block": 224103415,
-      "fingerprint": "7299812600fb5d3ad617a398690f55ffedcc70b29f93c50ee6909362d50adff5",
+      "block": 224120041,
+      "fingerprint": "4303f023dc06bac9e7e2f7fa8e252e93c4a279fd4a1186c35bd63aec87f11f93",
       "lines": 4,
       "error": null
     },
     {
       "dao": "nexus-liquidity-protocol.sputnik-dao.near",
       "test": false,
-      "block": 224103419,
-      "fingerprint": "9c5d542632ea3b48b7de2b9a51ee3e3265b210a19948803078801fe129630443",
+      "block": 224120048,
+      "fingerprint": "6fb0a3f0b42084fba7544127ccd9cd69a0506361ddfef5d97f319796c8a91259",
       "lines": 10,
       "error": null
     },
     {
       "dao": "nfendowment03.sputnik-dao.near",
       "test": false,
-      "block": 224103436,
-      "fingerprint": "6ee4e6debe7ccf2ee376f6a4f469145b3d4c796cc44f07c04a4af44aea49f89b",
+      "block": 224120064,
+      "fingerprint": "b31a91f6f533108f661b52ebfdf57a254d9055ce8b9f61f2ac73b061d2e6e74a",
       "lines": 21,
       "error": null
     },
     {
       "dao": "number35.sputnik-dao.near",
       "test": false,
-      "block": 224103437,
-      "fingerprint": "0eb94bf564e7a46a0a2c0db9f175067d3d1521bb54318716c5fa54275d4dd6a4",
+      "block": 224120071,
+      "fingerprint": "5d7e0e389f1fe71d6892d1b1c3f60e42af61a3e560ec57a4443c7eaab504b2cf",
       "lines": 2,
       "error": null
     },
     {
       "dao": "okx-isolated-20261025.sputnik-dao.near",
       "test": false,
-      "block": 224103446,
-      "fingerprint": "1fc7dda250a84892b019c8f042fc053c7a89f69efa2140e2deed23a90b6007dd",
+      "block": 224120075,
+      "fingerprint": "e327cc0065bddf61d4625b41c674653df026af70616183ae54934fecbc176073",
       "lines": 1,
       "error": null
     },
     {
       "dao": "ol-test.sputnik-dao.near",
       "test": true,
-      "block": 224103488,
-      "fingerprint": "1f78e379e73d47877ffc78e1bb142f87a3642b272c4ec7f09ad1a99e099ec9b3",
+      "block": 224120077,
+      "fingerprint": "f5e9223119e6c239e5e40394bf2734760a1335a714847a42add80c69810119a7",
       "lines": 1,
       "error": null
     },
     {
       "dao": "olskik-confidential.sputnik-dao.near",
       "test": false,
-      "block": 224103468,
-      "fingerprint": "5c491a41f180a14c4f3bf9051f3b76019e1c3fe05bde213948731f814b5bdc0e",
+      "block": 224120082,
+      "fingerprint": "d306b16a01472983405d2ee034fe5dd4f10400edf47e13c6f52d36fe6b485f7c",
       "lines": 2,
       "error": null
     },
     {
       "dao": "olskik-test.sputnik-dao.near",
       "test": true,
-      "block": 224103480,
-      "fingerprint": "dbefedf9a019676cbf2901aeac7165d804a39d962795ab7287008228d9a32541",
+      "block": 224120086,
+      "fingerprint": "bbbf910e176b19538cbb67910fca968215a5139b286438709f6eecd631000893",
       "lines": 11,
       "error": null
     },
     {
       "dao": "open-web-academy.sputnik-dao.near",
       "test": false,
-      "block": 224103504,
-      "fingerprint": "8473ae315e62c8d1135b4ed32a3bacfd046a43e4b84c1c6b177158317a8fc937",
+      "block": 224120089,
+      "fingerprint": "eff04c93c2e8f34e0f40a7d184ec7edededa9d493b616f8289b1ed792cfaad52",
       "lines": 19,
       "error": null
     },
     {
       "dao": "orderly-ops.sputnik-dao.near",
       "test": false,
-      "block": 224103518,
-      "fingerprint": "8111bad4b08c0e26f2348938e321f07c1cc04eb35a5ef53cc22dcf2222d22f43",
+      "block": 224120095,
+      "fingerprint": "f3bf4a0b615b7cb7b3c55e2738c6e21b98b0ea0b2868c289882ee9fa69164974",
       "lines": 12,
       "error": null
     },
     {
       "dao": "oreotest.sputnik-dao.near",
       "test": true,
-      "block": 224103555,
-      "fingerprint": "da14d354843d3450c0b3dc10e786cab6959ac23cad61a976671aaa963fa9ed0b",
+      "block": 224120100,
+      "fingerprint": "81e12b34f733ee5d207f5d3d9050b72f0cd29804b3ed3a9811a251a3d1106784",
       "lines": 2,
       "error": null
     },
     {
       "dao": "oscoi.sputnik-dao.near",
       "test": false,
-      "block": 224103569,
-      "fingerprint": "85de956c0a7ba643ead1d8f3a944780645a8c51c93c55a4b378763ea17c67c3a",
+      "block": 224120108,
+      "fingerprint": "9c6d4854e5f07b7f409ff614ffef7e58517bd83d469304cf72c3ce903b1a2d3e",
       "lines": 2,
       "error": null
     },
     {
       "dao": "paul-morphy-test.sputnik-dao.near",
       "test": true,
-      "block": 224103588,
-      "fingerprint": "2662bf840f6d032e71818ec3ea2c44fee9e6dc84301cb886e113ea83454d5d19",
+      "block": 224120112,
+      "fingerprint": "3cffe0ee5b2c6004cad5668b15ee07991fc8fc6415cd40047922eecdee76e2b3",
       "lines": 9,
       "error": null
     },
     {
       "dao": "qa-bug1024-sim2.sputnik-dao.near",
       "test": true,
-      "block": 224103618,
-      "fingerprint": "62b1290438ad995dbebcc4958ddc993fe8668d275eb8d486158c494c018b3126",
+      "block": 224120113,
+      "fingerprint": "f4cec637d2426e746e0e127847be25bb77b25da6b4f937afc1b466674ea0ac5f",
       "lines": 1,
       "error": null
     },
     {
       "dao": "qa-evm-public.sputnik-dao.near",
       "test": true,
-      "block": 224103631,
-      "fingerprint": "d00c4d6ee7777a424bd925672cc1eb062d393c79712c089d834631a2130932df",
+      "block": 224120124,
+      "fingerprint": "a9945839cfa14fe76c77f30f97ab9f0cf8944a68735f22eb2243a9896d5874fb",
       "lines": 17,
       "error": null
     },
     {
       "dao": "qa-stage.sputnik-dao.near",
       "test": true,
-      "block": 224103659,
-      "fingerprint": "dcc69092c9600c5365376192d7d3f286537d2a9e886ba88cd8ddd429058a9a97",
+      "block": 224120197,
+      "fingerprint": "a91c2f8811de634e7dfd073ccfe4740749db1560034a6e56faafa97115fe1ab4",
       "lines": 6,
       "error": null
     },
     {
       "dao": "rb744.sputnik-dao.near",
       "test": false,
-      "block": 224103675,
-      "fingerprint": "17621cc45823150737b7a0816ec7edf640f4bdc8b90d32ab638f935f5198ef4a",
+      "block": 224120200,
+      "fingerprint": "1b466aff7d226906a192ee25d0e6dbbe33b7d81ec71ee49f57f952673202c85a",
       "lines": 2,
       "error": null
     },
     {
       "dao": "ref-finance.sputnik-dao.near",
       "test": false,
-      "block": 224103712,
-      "fingerprint": "438e20423b1d5419ee6bd604d251d5e4f80fd5885d6b21ad4b408a8fc53d2773",
+      "block": 224120207,
+      "fingerprint": "528574e65742c50ff460ac17a463f11ffe5a24b49d758f2409d535335d80da05",
       "lines": 196,
       "error": null
     },
     {
       "dao": "ref-labs.sputnik-dao.near",
       "test": false,
-      "block": 224103812,
-      "fingerprint": "87504c82bceaf4faf7079901d8065898b5c6b65b6da924c4f896a1203cfe2075",
+      "block": 224120212,
+      "fingerprint": "c2eda83d630ff20ca39ae3d4e6a77c6aae1ca8f25dd595d12253340c53ba7b8e",
       "lines": 15,
       "error": null
     },
     {
       "dao": "riverside-guild.sputnik-dao.near",
       "test": false,
-      "block": 224103976,
-      "fingerprint": "992a9b9df9513b298df072f8294c7ed55a99a6d5603e5e2fd620e8af908b79b0",
+      "block": 224120301,
+      "fingerprint": "6e8cac1da190ffc6e6255d86b18ad1fb9a6a1dc992096d06d9db4fae89385e7b",
       "lines": 2,
       "error": null
     },
     {
       "dao": "romakqatesting.sputnik-dao.near",
       "test": true,
-      "block": 224104020,
-      "fingerprint": "cbd043fd7dbc3c3ad6ffa2292d13a0f795c19269bb0001e5eb38a9b41400347a",
+      "block": 224120324,
+      "fingerprint": "58a965911274f32e40f48bd9a926df0b68f4f501ca0a6bc5b9701024cfdc93ae",
       "lines": 110,
       "error": null
     },
     {
       "dao": "shitzu.sputnik-dao.near",
       "test": false,
-      "block": 224104139,
-      "fingerprint": "38c1a8f609c8bfa4bcba8b37bddf7528762eed400320ddf0fbc7568abb5945d0",
+      "block": 224120551,
+      "fingerprint": "d8fcedec87d3b54ffd435c4cd9247336990ef9ae9dca67bcc0290f31ac3f3504",
       "lines": 88,
       "error": null
     },
     {
       "dao": "sloppy.sputnik-dao.near",
       "test": false,
-      "block": 224104996,
-      "fingerprint": "b166a3879390e13b79a5ece96f9f715d4908356b03f95748dd6de86f52f1c33b",
+      "block": 224120634,
+      "fingerprint": "55e7e757de92b9525c316d98ce8d96f235d2646c871646d455deee21d5416ee5",
       "lines": 3,
       "error": null
     },
     {
       "dao": "sodax.sputnik-dao.near",
       "test": false,
-      "block": 224104306,
-      "fingerprint": "2907e673704e687726352a602cd280eb994389570852dac8fe2e004ee88ffcfb",
+      "block": 224120660,
+      "fingerprint": "4903d422976aa7ffcbf804661e0a3b1f3ac51aa65ac502ebc4f5f5af468a6d14",
       "lines": 1,
       "error": null
     },
     {
       "dao": "sudostake-dao.sputnik-dao.near",
       "test": false,
-      "block": 224104320,
-      "fingerprint": "17594ba6e44ce5396cb3a552b61ca80e2731c2b266756a559022ab0a5183130f",
+      "block": 224120671,
+      "fingerprint": "9423aae3db2fbd3924f044eed97f790a711d0b1246106ebf328f1d4b0de88df0",
       "lines": 1,
       "error": null
     },
     {
       "dao": "survival-is-near.sputnik-dao.near",
       "test": false,
-      "block": 224104324,
-      "fingerprint": "ccd5481c0e211f214fc0c7b5bdd7513c690f323f4c0a141a483f1e5b7164c310",
+      "block": 224120685,
+      "fingerprint": "6e827afcc466145e275bbf0a21d544b0e1673bac691236d435bbd9fcadb72430",
       "lines": 2,
       "error": null
     },
     {
       "dao": "taler-finance.sputnik-dao.near",
       "test": false,
-      "block": 224104398,
-      "fingerprint": "dda318bd9ee4f32e67d61194fc7eb85dd6ee3374bd90b71aa6c06bdecd26e5a8",
+      "block": 224120705,
+      "fingerprint": "0ac14677c759d83371a856ad6a3f1ba3ce78d2dfa352238fb4eadaba3c12e730",
       "lines": 3,
       "error": null
     },
     {
       "dao": "tarrun-1.sputnik-dao.near",
       "test": false,
-      "block": 224104343,
-      "fingerprint": "ac86137356f866aa7cc0d876f1e7fa522a1196c8ee46e4a8116f6ce327611eca",
+      "block": 224120802,
+      "fingerprint": "4b8a813f4e642a7db7da42764bb8602108c365adbd1b2715f908b82cbbb3d8b4",
       "lines": 1,
       "error": null
     },
     {
       "dao": "taruin-new.sputnik-dao.near",
       "test": false,
-      "block": 224104358,
-      "fingerprint": "15b1357cd60c1b5121ef3b04ca06bf00f1ec3c6266d252c574b2f137c561b982",
+      "block": 224120827,
+      "fingerprint": "592ec8764dec3983191bf441d52e37d138e5e44dadc4b77d61f39db48647a660",
       "lines": 5,
       "error": null
     },
     {
       "dao": "templar.sputnik-dao.near",
       "test": false,
-      "block": 224104377,
-      "fingerprint": "e892040469df201bb1c793ad601508e277189979b4893afce160c778921136c8",
+      "block": 224120864,
+      "fingerprint": "73d1ffae8269e4d9a38c31aae0e69592bfd2794e117a430f1f196f198133affd",
       "lines": 79,
       "error": null
     },
     {
       "dao": "test-ukr-13.sputnik-dao.near",
       "test": true,
-      "block": 224104414,
-      "fingerprint": "0ec74e4aa6508f37f37441ed5b6e9f6ee3da825dd85297b9728bd9933465c1f1",
+      "block": 224120943,
+      "fingerprint": "59d69c7c07ce531020cc1ab9cf9f062489ea520aed8dd19a40dd93de2b43dbb5",
       "lines": 1,
       "error": null
     },
     {
       "dao": "tester-123.sputnik-dao.near",
       "test": true,
-      "block": 224104433,
-      "fingerprint": "d41e64fe98111aa098d6257cb7511a2670315180944c4cb035d299cccecad88c",
+      "block": 224120956,
+      "fingerprint": "400b2222f5bfef045efa9cc550145b12b6821f8888c7c4bbde6a6f483be258af",
       "lines": 3,
       "error": null
     },
     {
       "dao": "testing-109.sputnik-dao.near",
       "test": true,
-      "block": 224104454,
-      "fingerprint": "78608d5a4af23400d092c6220263c04405d9b3b0cfd867b3b21882e894c26d96",
+      "block": 224120978,
+      "fingerprint": "b4437fc523b0aa0e91ca81275897de168838fd6f92c153a8990eb215b41d0fd9",
       "lines": 2,
       "error": null
     },
     {
       "dao": "testing-1212.sputnik-dao.near",
       "test": true,
-      "block": 224104471,
-      "fingerprint": "cee39c6de88e2536a95c54247fb199c19f70e8af408c3b839b6c3789d3eff15b",
+      "block": 224120994,
+      "fingerprint": "518789d0afb9597fe64857f4e2108d3e8f9fd1f395f367fb40961c5d15590828",
       "lines": 4,
       "error": null
     },
     {
       "dao": "testing-treasury-frolik.sputnik-dao.near",
       "test": true,
-      "block": 224104479,
-      "fingerprint": "bd9971f0bfd7799e461591bb7ce9e89f7816686a141126db092a17d63b2c0c73",
+      "block": 224121012,
+      "fingerprint": "6ae1595e69595834dcc809183ff1352d7013b4a769fccee7756faa0b57bc3ecf",
       "lines": 4,
       "error": null
     },
     {
       "dao": "tobi.sputnik-dao.near",
       "test": false,
-      "block": 224104497,
-      "fingerprint": "1e37e62b3174f1470c76c6ddf79b1d821d85097734581b21b2667edf50da55f6",
+      "block": 224121023,
+      "fingerprint": "dfbd022ed7549061a06470d662184a0eae0eac3d8f1322694c45a5a91e166bbb",
       "lines": 78,
       "error": null
     },
     {
       "dao": "treasury-npnd.sputnik-dao.near",
       "test": false,
-      "block": 224104510,
-      "fingerprint": "bf4e2fee083754159fe0b1e3143d0ce8bd39a971b0013069935dfdac9d48b199",
-      "lines": 79,
+      "block": 224121034,
+      "fingerprint": "74690dbe117c495956292367fb039617867d812fc3670755572e563689c65206",
+      "lines": 83,
       "error": null
     },
     {
       "dao": "trezu-confidential-staging.sputnik-dao.near",
       "test": true,
-      "block": 224104550,
-      "fingerprint": "cbc988e3027a9b28ebb5780b7231f692730bd147baf3b57be62eaee5f4a3152c",
+      "block": 224121103,
+      "fingerprint": "fdee3ec8e8cd0de4dde20585be67317fbe1fbeaf91ffc17a53db8ac7d7e8a76a",
       "lines": 3,
       "error": null
     },
     {
       "dao": "trezu-demo.sputnik-dao.near",
       "test": true,
-      "block": 224104571,
-      "fingerprint": "100d1cdab51603e50f024c63da71e6c9ea23a2407a150b61fd1bca3cd6f26a2c",
+      "block": 224121126,
+      "fingerprint": "55a340c7c30bf7d257b4f8cdab78bf9d07b982a703d8ca2a89a4771878a7f106",
       "lines": 32,
       "error": null
     },
     {
       "dao": "ttt.sputnik-dao.near",
       "test": false,
-      "block": 224104618,
-      "fingerprint": "7835f06d34795e87a3aeefc9a65079bf76a584b4eeeeb808025f8705f8afccef",
+      "block": 224121136,
+      "fingerprint": "24b052aa213b235b743845b496c664f19929c7dfa5ff93beb3df2cd57abcc087",
       "lines": 1,
       "error": null
     },
     {
       "dao": "unified-test-1.sputnik-dao.near",
       "test": true,
-      "block": 224104631,
-      "fingerprint": "0008fa1c1651976d864b8f19e59c67660b4b550f1a5b8982e066780fcfc03ade",
+      "block": 224121163,
+      "fingerprint": "e9d381beaa5ec246321505da126ae89eb92d853ef27512f625f9ac098dcad360",
       "lines": 95,
       "error": null
     },
     {
       "dao": "unified-test.sputnik-dao.near",
       "test": true,
-      "block": 224104636,
-      "fingerprint": "0fb093b738da3ac0f0f3499bc38b355f77cecdbceee116c116e9dfad6e4692f7",
+      "block": 224121183,
+      "fingerprint": "ffaf74a94906ec32fe7c75494a3684c16c1c43e9e8fde05e91d51fb89f51deff",
       "lines": 7,
       "error": null
     },
     {
       "dao": "w3xsandbox.sputnik-dao.near",
       "test": true,
-      "block": 224104661,
-      "fingerprint": "315daa0fea0d6fd6b3d10d77d7d5b314ec03217d38d54fd98ba65022c9d742db",
+      "block": 224121217,
+      "fingerprint": "a82af44b7a15d2cb973d62a6badaf15c406550bf0bab464b548f5533c39dbd19",
       "lines": 2,
       "error": null
     },
     {
       "dao": "w4spon2.sputnik-dao.near",
       "test": false,
-      "block": 224104684,
-      "fingerprint": "833cc69126734eef686851105a9ba064c6e32eadc0fa535485307cf10ac5d9e9",
+      "block": 224121232,
+      "fingerprint": "bbcd886d7ca9bdc0a5805d69f9dac7f34b594925b8d6c5e1b390c6c146727d95",
       "lines": 2,
       "error": null
     },
     {
       "dao": "w5vgdvsv.sputnik-dao.near",
       "test": false,
-      "block": 224104693,
-      "fingerprint": "f874d4f5491a47276b814855bf11a06f1461f27da7ec518b703d73c4cf299db5",
+      "block": 224121243,
+      "fingerprint": "1a68d582a9bcd03fbb2e89464f99ee5cddd06c8d4ba1407c4ad5d8466db36877",
       "lines": 2,
       "error": null
     },
     {
       "dao": "w5xsmuhy.sputnik-dao.near",
       "test": false,
-      "block": 224104721,
-      "fingerprint": "cc3281cf6e07525e7022c8768d7c3d8166cd196edec108c4acbd6a24bc455a36",
+      "block": 224121257,
+      "fingerprint": "91d2add161c4cdcbc62384df5006e10d5773ed51d38d0651d9e4a95aa7a024cf",
       "lines": 2,
       "error": null
     },
     {
       "dao": "warpdrive.sputnik-dao.near",
       "test": false,
-      "block": 224104735,
-      "fingerprint": "fcfec0ba79b4ebfae43c5d4b8a829049f49cf3708f22fd7b6bf25c77cfbdbae4",
+      "block": 224121265,
+      "fingerprint": "1324c284f38173b2d86956e01c0b570a9f3182cfd6953d32a3478d49c8f00dcc",
       "lines": 2,
       "error": null
     },
     {
       "dao": "webassemblymusic-treasury.sputnik-dao.near",
       "test": false,
-      "block": 224104744,
-      "fingerprint": "3c793c6b26ccc4aa7b57006b0d8e410cae044d7ebd06066db08199ac91512c6e",
+      "block": 224121280,
+      "fingerprint": "21024eaeddce305096fbd1e19602577aa891e175e165038b952a2938a095b798",
       "lines": 25,
       "error": null
     },
     {
       "dao": "widget_collect.sputnik-dao.near",
       "test": false,
-      "block": 224104761,
-      "fingerprint": "de459a515e43954fe0f03dff8cb5c86f8ec87d8c21278741335487905f347d6c",
+      "block": 224121287,
+      "fingerprint": "511df16ea235fad8a786de9067108b2bc078fdf525eb2564a6a3f64ed7550f09",
       "lines": 63,
       "error": null
     },
     {
       "dao": "xgyzg.sputnik-dao.near",
       "test": false,
-      "block": 224104851,
-      "fingerprint": "2edf87555af577fca0904a2634cc44d5a2a38bac2c6c230867629b6dbbdf0a61",
+      "block": 224121335,
+      "fingerprint": "0493d75b44cf566c7a4d2efd8266692853401f14dd129876b16c071086c61d24",
       "lines": 1,
       "error": null
     },
     {
       "dao": "yh.sputnik-dao.near",
       "test": false,
-      "block": 224104863,
-      "fingerprint": "ae67929a85da95f88c0755a65c4b0eb271c69bdbc733091d82598a7258a590f4",
+      "block": 224121362,
+      "fingerprint": "34d0e41ee599475c976f42d0ddc4b18f1551a4256e5900ac29bf225f215a496f",
       "lines": 2,
       "error": null
     },
     {
       "dao": "your-treasury.sputnik-dao.near",
       "test": false,
-      "block": 224104893,
-      "fingerprint": "b52982e210d1083be98070dff9d20473b1202c745ae32a6b197fc96e2ae84a13",
+      "block": 224121441,
+      "fingerprint": "f070f9914bccc7799c855d947d56aed9d09b3ad94f0266a9f974761c601d010c",
       "lines": 1,
       "error": null
     },
     {
       "dao": "yurtur-treasury.sputnik-dao.near",
       "test": false,
-      "block": 224104903,
-      "fingerprint": "2aa654221ac4e5577ae30b6079b89255767082af0210d454d8f3019bd026e6ca",
+      "block": 224121529,
+      "fingerprint": "3299cc82868566005fddf177dcb0f3fbb588518b81f8821ebb10891b22376b6e",
       "lines": 33,
       "error": null
     },
     {
       "dao": "zakura.sputnik-dao.near",
       "test": false,
-      "block": 224104912,
-      "fingerprint": "9dc26b7a8cac9a0110f916e98cb90367c6804c80ec703db5d4e557a261ffcad4",
+      "block": 224121547,
+      "fingerprint": "c314b7469f511b57279b25553b95b59062d8a1cc4937473bd5e54873837b600e",
       "lines": 2,
       "error": null
     },
     {
       "dao": "zero-cost-treasury.sputnik-dao.near",
       "test": false,
-      "block": 224104956,
-      "fingerprint": "8fde1d6b53083fd152039372bb16fe48b49e763ddd4eda5ac08010737359722b",
+      "block": 224121560,
+      "fingerprint": "12567ad60dd012a9ac9fcfa4f5d9b02b9a88cbd5152bee958f1d5ae0e7d998e6",
       "lines": 10,
       "error": null
     }

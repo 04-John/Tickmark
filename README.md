@@ -8,7 +8,7 @@ Point Tickmark at a Sputnik DAO or Trezu treasury. It lists every payment the tr
 
 ## Why
 
-In the 12 months to 11 November 2026, 92 NEAR DAOs paid out **$99.9M** to other accounts. For **$67.8M (68%)** of it, nothing in the proposal, the chain or the payee's history says what it was for. **$59.5M (60%)** went out on a proposal whose description is empty or a single word like "transfer". Test DAOs, swaps, wrapped NEAR, staking, loans, and moves between a treasury's own accounts are not counted.
+In the 12 months to 11 November 2026, 92 NEAR DAOs paid out **$99.8M** to other accounts. For **$67.7M (68%)** of it, nothing in the proposal, the chain or the payee's history says what it was for. **$59.4M (59%)** went out on a proposal whose description is empty or a single word like "transfer". Test DAOs, swaps, wrapped NEAR, staking, loans, and moves between a treasury's own accounts are not counted.
 
 These are Tickmark's own numbers. To rebuild them (about 15 minutes, free public endpoints):
 
