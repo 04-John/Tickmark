@@ -1,12 +1,14 @@
 // Tickmark command line.
 //   node cli/tickmark.ts scan  <dao> [options]   every money movement, valued
 //   node cli/tickmark.ts books <dao> [options]   the books: categories, journal, monthly spending, suspense
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { centsToString, journal, statement, type JournalEntry } from '../core/books.ts';
 import { classify } from '../core/classify.ts';
 import { fetchMovements, fetchPolicy } from '../core/dao.ts';
 import { kindName } from '../core/decode.ts';
+import { exportBooks } from '../core/exports.ts';
 import { datePayments, TxIndex } from '../core/history.ts';
 import { auditQuestions, type QuestionKind } from '../core/questions.ts';
 import { ARCHIVAL_RPC, Rpc, type Network } from '../core/rpc.ts';
@@ -26,11 +28,16 @@ Options:
   --json FILE          write everything Tickmark derived to FILE
   --skip-dates         book payments on their submission date instead of looking up when they were paid
 
+Options for books:
+  --out DIR            write the bookkeeper's files to DIR (journal, QuickBooks, Xero, chart of accounts,
+                       monthly spending, questions, and about-these-files.txt explaining them)
+  --xero-tax-rate NAME tax rate name for the Xero file (default "Tax Exempt")
+
 Examples:
   node cli/tickmark.ts scan daocubator.sputnik-dao.near --lines
-  node cli/tickmark.ts books daocubator.sputnik-dao.near`;
+  node cli/tickmark.ts books daocubator.sputnik-dao.near --out out/daocubator`;
 
-type Options = { since?: string; network: Network; lines: boolean; json?: string; skipDates: boolean };
+type Options = { since?: string; network: Network; lines: boolean; json?: string; skipDates: boolean; out?: string; xeroTaxRate?: string };
 
 const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
@@ -162,6 +169,12 @@ async function books(dao: string, options: Options) {
     writeFileSync(options.json, JSON.stringify({ dao, network: options.network, since: sinceDate, statement: st, questions, journal: entries }, null, 2));
     console.log(`\n  wrote the journal and statement to ${options.json}`);
   }
+  if (options.out) {
+    const files = exportBooks({ dao, network: options.network, since: sinceDate, entries, statement: st, questions }, { xeroTaxRate: options.xeroTaxRate });
+    mkdirSync(options.out, { recursive: true });
+    for (const f of files) writeFileSync(join(options.out, f.name), f.content);
+    console.log(`\n  wrote ${files.length} files to ${options.out}: ${files.map((f) => f.name).join(', ')}`);
+  }
 }
 
 function printEntry(e: JournalEntry, withEvidence = false) {
@@ -178,6 +191,8 @@ const { positionals, values } = parseArgs({
     lines: { type: 'boolean', default: false },
     json: { type: 'string' },
     'skip-dates': { type: 'boolean', default: false },
+    out: { type: 'string' },
+    'xero-tax-rate': { type: 'string' },
     help: { type: 'boolean', short: 'h', default: false },
   },
 });
@@ -198,4 +213,6 @@ await commands[command as keyof typeof commands](dao, {
   lines: values.lines,
   json: values.json,
   skipDates: values['skip-dates'],
+  out: values.out,
+  xeroTaxRate: values['xero-tax-rate'],
 });

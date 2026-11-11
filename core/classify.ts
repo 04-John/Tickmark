@@ -51,7 +51,7 @@ export const CATEGORIES: Record<CategoryId, Category> = Object.fromEntries(
       ['distributions', '6090', 'Protocol fee and revenue distributions', 'expense'],
       ['other_daos', '6100', 'Funding sent to other DAOs', 'expense'],
       ['refunds', '6110', 'Refunds', 'expense'],
-      ['suspense', '1999', 'Suspense: payments to be explained', 'suspense'],
+      ['suspense', '1999', 'Suspense (payments to be explained)', 'suspense'],
       ['own_wallets', '1910', "Moved to the organization's other wallets", 'balance_sheet'],
       ['exchanges', '1920', 'Held at exchanges', 'balance_sheet'],
       ['protocols', '1930', 'Deposited into DeFi protocols', 'balance_sheet'],
