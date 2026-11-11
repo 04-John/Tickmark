@@ -6,6 +6,18 @@ Point Tickmark at a Sputnik DAO or Trezu treasury. It lists every payment the tr
 
 > **Status: work in progress (day 1 of 4).** Everything under [Try it](#try-it) works today. Sections marked *(building)* are planned and not done yet. This note goes away when they are.
 
+## Why
+
+In the 12 months to 11 November 2026, 92 NEAR DAOs paid out **$99.9M** to other accounts. For **$67.8M (68%)** of it, nothing in the proposal, the chain or the payee's history says what it was for. **$59.5M (60%)** went out on a proposal whose description is empty or a single word like "transfer". Test DAOs, swaps, wrapped NEAR, staking, loans, and moves between a treasury's own accounts are not counted.
+
+These are Tickmark's own numbers. To rebuild them (about 15 minutes, free public endpoints):
+
+```sh
+node scripts/measure.ts data/measure/daos.txt --summary my-summary.json
+```
+
+[data/measure/last-12-months.json](data/measure/last-12-months.json) has the totals, the definitions, and each DAO's block and report fingerprint, so any one DAO can be checked with `books`. It deliberately has no per-DAO dollar figures.
+
 ## Who it's for
 
 The bookkeeper or treasurer of a team that pays people from a NEAR DAO. Today they rebuild the books by hand from a block explorer, one proposal at a time, and guess what payments without a memo were for. Tickmark does the reading, decoding, dating, pricing and placing. It leaves them only the questions a person has to answer.
