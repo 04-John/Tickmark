@@ -1,11 +1,13 @@
 // Tickmark command line.
-//   node cli/tickmark.ts scan <dao> [--since YYYY-MM-DD] [--network mainnet|testnet] [--lines] [--json out.json]
+//   node cli/tickmark.ts scan <dao> [--since YYYY-MM-DD] [--network mainnet|testnet] [--lines] [--json out.json] [--skip-dates]
 import { writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { fetchMovements } from '../core/dao.ts';
 import { kindName } from '../core/decode.ts';
-import { Rpc, type Network } from '../core/rpc.ts';
+import { datePayments, TxIndex } from '../core/history.ts';
+import { ARCHIVAL_RPC, Rpc, type Network } from '../core/rpc.ts';
 import { TokenBook } from '../core/tokens.ts';
+import { bookingTime } from '../core/types.ts';
 import { valueMovements, type ValuedMovement } from '../core/value.ts';
 import { loadPriceBook } from './load.ts';
 
@@ -17,6 +19,7 @@ Options:
   --network NAME       mainnet (default) or testnet
   --lines              print every money movement, not just the totals
   --json FILE          write the valued movements to FILE
+  --skip-dates         book payments on their submission date instead of looking up when they were paid
 
 Example:
   node cli/tickmark.ts scan marketing.sputnik-dao.near --lines`;
@@ -26,7 +29,7 @@ const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 const cut = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 const oneLine = (s: string) => s.replace(/<br>/gi, ' ').replace(/\s+/g, ' ').trim();
 
-async function scan(dao: string, options: { since?: string; network: Network; lines: boolean; json?: string }) {
+async function scan(dao: string, options: { since?: string; network: Network; lines: boolean; json?: string; skipDates: boolean }) {
   const prices = loadPriceBook();
   const sinceDate = options.since ?? prices.range('near')?.from;
   if (!sinceDate) throw new Error('No NEAR prices in data/prices; run npm run prices:update');
@@ -34,7 +37,22 @@ async function scan(dao: string, options: { since?: string; network: Network; li
   if (Number.isNaN(sinceMs)) throw new Error(`--since must be YYYY-MM-DD, got ${sinceDate}`);
 
   const rpc = new Rpc({ network: options.network });
-  const { proposals, movements } = await fetchMovements(rpc, dao, sinceMs);
+  const fetched = await fetchMovements(rpc, dao, sinceMs);
+  const { proposals } = fetched;
+  let movements = fetched.movements;
+  let dating = 'submission dates (--skip-dates)';
+  if (!options.skipDates) {
+    const dated = await datePayments(movements, {
+      dao,
+      sinceMs,
+      index: new TxIndex({ network: options.network }),
+      archival: new Rpc({ network: options.network, url: ARCHIVAL_RPC[options.network] }),
+    });
+    movements = dated.movements;
+    const r = dated.report;
+    dating = `${r.approvalVotes} from the approving vote, ${r.bulkPaidBlocks} from the bulk line's paid block, ${r.submissionDates} not found (submission date used)`;
+    for (const problem of r.problems.slice(0, 3)) console.error(`  warning: ${problem}`);
+  }
   const valued = await valueMovements(movements, new TokenBook(rpc), prices);
   const executed = valued.filter((m) => m.executed);
 
@@ -43,6 +61,7 @@ async function scan(dao: string, options: { since?: string; network: Network; li
   for (const p of proposals) kinds.set(kindName(p.kind), (kinds.get(kindName(p.kind)) ?? 0) + 1);
   console.log(`  ${proposals.length} proposals: ${[...kinds].map(([k, n]) => `${k} ${n}`).join(', ') || 'none'}`);
   console.log(`  ${movements.length} money movements, ${executed.length} executed`);
+  console.log(`  Payment dates: ${dating}`);
 
   const byToken = new Map<string, { count: number; quantity: number; usd: number; unpriced: number }>();
   for (const m of executed) {
@@ -63,7 +82,7 @@ async function scan(dao: string, options: { since?: string; network: Network; li
   if (notes.length) console.log(`  ${notes.length} movements with notes, e.g. ${notes[0]!.note}`);
 
   if (options.lines) {
-    console.log('\n  date        #id    status      via               amount                     usd  to / memo');
+    console.log('\n  paid on     #id    status      via               amount                     usd  to / memo');
     for (const m of valued) printLine(m);
   }
   if (options.json) {
@@ -76,7 +95,7 @@ function printLine(m: ValuedMovement) {
   const amount = `${Number(m.quantity).toLocaleString('en-US', { maximumFractionDigits: 4 })} ${cut(m.symbol, 8)}`;
   const value = m.usd === null ? '—' : usd(m.usd);
   console.log(
-    `  ${day(m.proposedAt)}  ${String('#' + m.proposalId).padEnd(6)} ${m.status.padEnd(11)} ${m.via.padEnd(17)} ${amount.padStart(24)} ${value.padStart(10)}  ${cut(m.to, 24)} | ${cut(oneLine(m.memo) || '(no memo)', 50)}`,
+    `  ${day(bookingTime(m))}${m.dateSource === 'submitted' ? '*' : ' '} ${String('#' + m.proposalId).padEnd(6)} ${m.status.padEnd(11)} ${m.via.padEnd(17)} ${amount.padStart(24)} ${value.padStart(10)}  ${cut(m.to, 24)} | ${cut(oneLine(m.memo) || '(no memo)', 50)}`,
   );
 }
 
@@ -87,6 +106,7 @@ const { positionals, values } = parseArgs({
     network: { type: 'string', default: 'mainnet' },
     lines: { type: 'boolean', default: false },
     json: { type: 'string' },
+    'skip-dates': { type: 'boolean', default: false },
     help: { type: 'boolean', short: 'h', default: false },
   },
 });
@@ -100,4 +120,4 @@ if (values.network !== 'mainnet' && values.network !== 'testnet') {
   console.error('--network must be mainnet or testnet');
   process.exit(1);
 }
-await scan(dao, { since: values.since, network: values.network, lines: values.lines, json: values.json });
+await scan(dao, { since: values.since, network: values.network, lines: values.lines, json: values.json, skipDates: values['skip-dates'] });

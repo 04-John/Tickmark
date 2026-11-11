@@ -69,6 +69,14 @@ export function isPaid(status: unknown): boolean {
   return typeof status === 'object' && status !== null && 'Paid' in status;
 }
 
+/** The block a bulk line was paid in, when the list records it ({ Paid: { block_height } }). */
+export function paidBlock(status: unknown): number | undefined {
+  if (!isPaid(status)) return undefined;
+  const paid = (status as { Paid: unknown }).Paid;
+  const height = typeof paid === 'object' && paid !== null ? (paid as { block_height?: unknown }).block_height : undefined;
+  return typeof height === 'number' && Number.isSafeInteger(height) && height > 0 ? height : undefined;
+}
+
 /**
  * Replace each bulk payment placeholder with one movement per recipient, read from the list contract.
  * A list that can't be read stays as one line with a note, so its total is never lost.
@@ -105,6 +113,8 @@ export async function expandBulkPayments(rpc: ViewClient, movements: Movement[])
         amount: payment.amount,
         executed: m.executed && isPaid(payment.status),
         bulkListId: undefined,
+        bulkList: m.bulkListId,
+        bulkPaidBlock: paidBlock(payment.status),
         note: isPaid(payment.status) ? undefined : `bulk line status: ${JSON.stringify(payment.status)}`,
       });
     });

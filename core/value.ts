@@ -1,7 +1,7 @@
 // Attach token metadata and a USD value to each movement.
 import type { PriceBook } from './prices.ts';
 import type { TokenBook } from './tokens.ts';
-import type { Movement } from './types.ts';
+import { bookingTime, type Movement } from './types.ts';
 import { formatUnits, toNumber } from './units.ts';
 
 export type ValuedMovement = Movement & {
@@ -17,12 +17,12 @@ export type ValuedMovement = Movement & {
   unitPrice: number | null;
 };
 
-/** Values each movement at the price on the day it was proposed. */
+/** Values each movement at the price on the UTC day it was paid (or proposed, when the payment date is unknown). */
 export async function valueMovements(movements: Movement[], tokens: TokenBook, prices: PriceBook): Promise<ValuedMovement[]> {
   return Promise.all(
     movements.map(async (m) => {
       const token = await tokens.get(m.token);
-      const quote = token.price ? prices.quote(token.price, m.proposedAt) : null;
+      const quote = token.price ? prices.quote(token.price, bookingTime(m)) : null;
       const usd = quote ? Math.round(toNumber(m.amount, token.decimals) * quote.usd * 100) / 100 : null;
       return {
         ...m,

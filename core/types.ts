@@ -33,6 +33,13 @@ export type Via =
   | 'bulk_payment' // Trezu bulk payment list, one movement per recipient
   | 'attached_deposit'; // NEAR attached to any other function call (staking, wrapping, storage...)
 
+export type DateSource = 'approval_vote' | 'bulk_paid_block' | 'submitted';
+
+/** The date a movement is booked on: when it was paid if known, otherwise when it was proposed. */
+export function bookingTime(m: Pick<Movement, 'paidAt' | 'proposedAt'>): number {
+  return m.paidAt ?? m.proposedAt;
+}
+
 /** One amount of one asset leaving (or proposed to leave) a treasury. */
 export type Movement = {
   dao: string;
@@ -57,6 +64,18 @@ export type Movement = {
   proposer: string;
   /** Trezu bulk payment list id, set until the list is expanded into per-recipient lines. */
   bulkListId?: string;
+  /** Block in which a Trezu bulk payment line was marked Paid (from the list contract). */
+  bulkPaidBlock?: number;
+  /** On an expanded bulk line: the list it came from, so anyone can re-read it with view_list. */
+  bulkList?: string;
+  /** When the money moved, in Unix milliseconds. Set by datePayments(); falls back to proposedAt when unknown. */
+  paidAt?: number;
+  /** The block whose time is paidAt. */
+  paidAtBlock?: number;
+  /** Where paidAt came from: the approving vote, the bulk line's paid block, or nothing found (submission date used). */
+  dateSource?: DateSource;
+  /** Hash of the transaction that approved the proposal and so executed the payment. */
+  approvalTx?: string;
   /** Why something could not be decoded fully. */
   note?: string;
 };
