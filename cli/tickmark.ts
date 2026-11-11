@@ -2,15 +2,19 @@
 //   node cli/tickmark.ts scan   <dao> [options]   every money movement, valued
 //   node cli/tickmark.ts books  <dao> [options]   the books: categories, journal, monthly spending, questions, report
 //   node cli/tickmark.ts verify <report.json>      rebuild a report from the chain and compare fingerprints
+//   node cli/tickmark.ts close  <report.json>      draft the proposal that asks the council to approve a report
+//   node cli/tickmark.ts closings <dao>            list a DAO's close-the-books proposals and votes
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { centsToString, type JournalEntry } from '../core/books.ts';
+import { closingProposal, findClosings, mayPropose, nearCliCommand } from '../core/closing.ts';
+import { fetchPolicy, fetchProposals } from '../core/dao.ts';
 import { kindName } from '../core/decode.ts';
 import { exportBooks } from '../core/exports.ts';
 import { type QuestionKind } from '../core/questions.ts';
 import { fingerprintOf, firstDifference, type SignedReport } from '../core/report.ts';
-import type { Network } from '../core/rpc.ts';
+import { Rpc, type Network } from '../core/rpc.ts';
 import { bookingTime } from '../core/types.ts';
 import { suspenseGroups } from '../core/suggest.ts';
 import { suggest } from './near-ai.ts';
@@ -26,6 +30,9 @@ try {
 const USAGE = `Usage:
   node cli/tickmark.ts scan  <dao-account> [options]   list every money movement with its USD value
   node cli/tickmark.ts books <dao-account> [options]   categories, journal, monthly spending and suspense
+  node cli/tickmark.ts verify <report.json>            rebuild a report from the chain; show any vote that approved it
+  node cli/tickmark.ts close <report.json> [--signer ACCOUNT]   draft the close-the-books proposal (you sign, not Tickmark)
+  node cli/tickmark.ts closings <dao-account>          list the DAO's close-the-books proposals and how the council voted
 
 Options:
   --since YYYY-MM-DD   first day to include (default: first day of the price snapshot)
@@ -55,7 +62,7 @@ Examples:
   node cli/tickmark.ts verify out/daocubator/report.json`;
 
 
-type Options = PipelineOptions & { lines: boolean; json?: string; out?: string; xeroTaxRate?: string; suggest: boolean; notes?: string; model?: string };
+type Options = PipelineOptions & { lines: boolean; json?: string; out?: string; xeroTaxRate?: string; suggest: boolean; notes?: string; model?: string; signer?: string };
 
 const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
@@ -235,6 +242,9 @@ async function verify(file: string, options: Options) {
   const { report } = await makeBooks(saved.dao, { ...options, network: saved.network as Network, since: saved.since, block: saved.asOf.block });
   const same = report.fingerprint === saved.fingerprint;
   console.log(`  rebuilt fingerprint:          ${report.fingerprint}`);
+  const votes = (await daoClosings(saved.dao, saved.network as Network)).filter((c) => c.fingerprint === saved.fingerprint);
+  for (const c of votes) console.log(`  closed by vote: proposal #${c.proposalId} is ${c.status} (${Object.entries(c.votes).map(([who, v]) => `${who} ${v}`).join(', ') || 'no votes yet'})`);
+  if (!votes.length) console.log('  closed by vote: no proposal in this DAO carries this fingerprint yet');
   if (same && intact) {
     console.log('\n  VERIFIED: the report matches the chain.');
     return;
@@ -243,6 +253,44 @@ async function verify(file: string, options: Options) {
   if (diff) console.log(`\n  first difference at ${diff.path}:\n    file:    ${cut(JSON.stringify(diff.a), 160)}\n    rebuilt: ${cut(JSON.stringify(diff.b), 160)}`);
   console.log('\n  NOT VERIFIED.');
   process.exitCode = 1;
+}
+
+/** Every close-the-books proposal of a DAO (all of its history), read at the latest final block. */
+async function daoClosings(dao: string, network: Network) {
+  return findClosings(await fetchProposals(new Rpc({ network }), dao, 0));
+}
+
+/** Lists a DAO's close-the-books proposals and how the council voted. */
+async function closings(dao: string, options: Options) {
+  const found = await daoClosings(dao, options.network);
+  console.log(`${dao} (${options.network}): ${found.length} close-the-books proposal${found.length === 1 ? '' : 's'}`);
+  for (const c of found) {
+    console.log(`  #${c.proposalId}  ${c.status.padEnd(10)}  ${c.title}  (as of block ${c.asOfBlock ?? '?'}, proposed by ${c.proposer} on ${c.submittedAt.slice(0, 10)})`);
+    console.log(`        report sha256:${c.fingerprint}`);
+    console.log(`        votes: ${Object.entries(c.votes).map(([who, v]) => `${who} ${v}`).join(', ') || 'none yet'}`);
+  }
+  if (found.length) console.log('\n  To check one: get its report.json and run `node cli/tickmark.ts verify report.json`.');
+}
+
+/** Prints the proposal that asks the council to approve a report. Tickmark never signs; a council member does. */
+async function close(file: string, options: Options) {
+  const saved = JSON.parse(readFileSync(file, 'utf8')) as SignedReport;
+  if ((await fingerprintOf(saved)) !== saved.fingerprint) {
+    console.error(`${file} was edited after it was made (its content no longer matches its fingerprint). Rebuild it with books --out.`);
+    process.exit(1);
+  }
+  const network = saved.network as Network;
+  const policy = await fetchPolicy(new Rpc({ network }), saved.dao);
+  const call = closingProposal(saved, policy);
+  console.log(`Close the books of ${saved.dao}, ${saved.since} to block ${saved.asOf.block}: report sha256:${saved.fingerprint}\n`);
+  console.log(`Proposal (kind "Vote": text only, it moves no money). Bond: ${Number(BigInt(policy.proposal_bond) / 10n ** 21n) / 1000} NEAR, returned when the proposal passes.\n`);
+  console.log(call.args.proposal.description.split(' <br>').join('\n'));
+  if (options.signer) {
+    const who = mayPropose(policy, options.signer);
+    console.log(`\n${options.signer} ${who.allowed ? `may propose it (role: ${who.roles.join(', ')})` : 'is not in a role that may add vote proposals under this policy; a council member should submit it'}.`);
+  }
+  console.log(`\nA council member submits it with near CLI (Tickmark never signs):\n\n${nearCliCommand(call, options.signer ?? '<your-account.near>', network)}\n`);
+  console.log(`Then the council votes as usual. Anyone can confirm afterwards with: node cli/tickmark.ts verify ${file}`);
 }
 
 function printEntry(e: JournalEntry, withEvidence = false) {
@@ -264,13 +312,14 @@ const { positionals, values } = parseArgs({
     suggest: { type: 'boolean', default: false },
     notes: { type: 'string' },
     model: { type: 'string' },
+    signer: { type: 'string' },
     block: { type: 'string' },
     help: { type: 'boolean', short: 'h', default: false },
   },
 });
 
 const [command, target] = positionals;
-const commands = { scan, books, verify } as const;
+const commands = { scan, books, verify, close, closings } as const;
 if (values.help || !target || !(command && command in commands)) {
   console.log(USAGE);
   process.exit(values.help ? 0 : 1);
@@ -296,4 +345,5 @@ await commands[command as keyof typeof commands](target, {
   suggest: values.suggest,
   notes: values.notes,
   model: values.model,
+  signer: values.signer,
 });
