@@ -25,8 +25,38 @@ export function throwIfRetryable(res: Response): void {
 }
 
 /**
+ * A request that never reached an answer. In a browser a 429 sent without CORS headers looks exactly like this
+ * ("Failed to fetch"), so it is waited out like a rate limit.
+ */
+const isNetworkFailure = (error: unknown) => error instanceof TypeError;
+
+/** At most this many requests in flight to one host, across every caller, so parallel steps can't add up to a burst. */
+let maxInFlightPerHost = 3;
+
+/** Browsers send a CORS preflight before each request, so the website uses 2. */
+export function setMaxInFlightPerHost(n: number): void {
+  maxInFlightPerHost = Math.max(1, Math.floor(n));
+}
+const hosts = new Map<string, { active: number; waiting: (() => void)[] }>();
+
+/** Runs `request` when the host has a free slot. */
+export async function throttled<T>(url: string, request: () => Promise<T>): Promise<T> {
+  const host = new URL(url).host;
+  let slot = hosts.get(host);
+  if (!slot) hosts.set(host, (slot = { active: 0, waiting: [] }));
+  if (slot.active >= maxInFlightPerHost) await new Promise<void>((resolve) => slot.waiting.push(resolve));
+  slot.active++;
+  try {
+    return await request();
+  } finally {
+    slot.active--;
+    slot.waiting.shift()?.();
+  }
+}
+
+/**
  * Runs `attempt` until it succeeds, waiting delayMs, 2·delayMs, 4·delayMs... between tries
- * (three times longer after a 429, or as long as its Retry-After says).
+ * (three times longer after a 429 or a request that got no answer, or as long as a Retry-After says).
  * An error for which `isFinal` returns true is thrown at once (for example "unknown account").
  */
 export async function withRetries<T>(
@@ -45,7 +75,8 @@ export async function withRetries<T>(
       last = error;
       if (i < attempts) {
         const wait = delayMs * 2 ** (i - 1);
-        await sleep(error instanceof RateLimited ? Math.max(wait * 3, error.retryAfterMs ?? 0) : wait);
+        if (error instanceof RateLimited) await sleep(Math.max(wait * 3, error.retryAfterMs ?? 0));
+        else await sleep(isNetworkFailure(error) ? wait * 3 : wait);
       }
     }
   }

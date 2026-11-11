@@ -31,15 +31,25 @@ export async function blockBefore(client: BlockClient, timeMs: number, head: Blo
     }
     throw new Error(`no block found from ${height}`);
   };
-  let lo = genesis;
-  let hi = head.height;
-  while (hi - lo > 1) {
-    const mid = Math.floor((lo + hi) / 2);
-    const b = await at(mid);
-    if (b.timestampMs < timeMs && b.height < hi) lo = b.height;
-    else hi = mid;
+  // Interpolation search: blocks come at a steady pace, so guessing from the times usually lands within a few blocks.
+  // A step that doesn't halve the range is followed by a plain halving step, so the search always finishes.
+  let lo = await at(genesis);
+  if (lo.timestampMs >= timeMs) return lo;
+  let hi = { height: head.height, timestampMs: head.timestampMs };
+  let halveNext = false;
+  while (hi.height - lo.height > 1) {
+    const span = hi.height - lo.height;
+    const guess = halveNext
+      ? Math.floor((lo.height + hi.height) / 2)
+      : lo.height + Math.round(((timeMs - lo.timestampMs) / Math.max(1, hi.timestampMs - lo.timestampMs)) * span);
+    const h = Math.min(hi.height - 1, Math.max(lo.height + 1, guess));
+    const b = await at(h);
+    if (b.height >= hi.height) hi = { height: h, timestampMs: hi.timestampMs }; // every height from h up was skipped
+    else if (b.timestampMs < timeMs) lo = b;
+    else hi = { height: b.height, timestampMs: b.timestampMs };
+    halveNext = hi.height - lo.height > span / 2;
   }
-  return at(lo);
+  return lo;
 }
 
 /** Client able to read balances at one block (an Rpc pinned with at()). */

@@ -1,5 +1,5 @@
 // Read-only NEAR RPC: contract view calls and block headers, with retries. Works in Node and browsers (global fetch).
-import { FinalError, throwIfRetryable, withRetries } from './http.ts';
+import { FinalError, throttled, throwIfRetryable, withRetries } from './http.ts';
 import { nsToMs, toBase64 } from './units.ts';
 
 export type Network = 'mainnet' | 'testnet';
@@ -81,18 +81,19 @@ export class Rpc implements ViewClient, BlockClient {
     return withRetries(
       label,
       this.options.attempts ?? 6,
-      async () => {
-        const res = await this.fetchImpl(this.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
-        throwIfRetryable(res);
-        const json = (await res.json()) as RpcAnswer<T>;
-        if (json.error) {
-          const cause = json.error.cause?.name ?? json.error.name ?? 'RPC error';
-          if (cause === 'TIMEOUT_ERROR' || cause === 'INTERNAL_ERROR') throw new Error(cause);
-          throw new FinalError(`${cause} ${JSON.stringify(json.error.data ?? json.error.message ?? '')}`);
-        }
-        if (json.result === undefined) throw new FinalError('empty result');
-        return json.result;
-      },
+      () =>
+        throttled(this.url, async () => {
+          const res = await this.fetchImpl(this.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+          throwIfRetryable(res);
+          const json = (await res.json()) as RpcAnswer<T>;
+          if (json.error) {
+            const cause = json.error.cause?.name ?? json.error.name ?? 'RPC error';
+            if (cause === 'TIMEOUT_ERROR' || cause === 'INTERNAL_ERROR') throw new Error(cause);
+            throw new FinalError(`${cause} ${JSON.stringify(json.error.data ?? json.error.message ?? '')}`);
+          }
+          if (json.result === undefined) throw new FinalError('empty result');
+          return json.result;
+        }),
       (error) => error instanceof FinalError,
       this.options.retryDelayMs,
     );

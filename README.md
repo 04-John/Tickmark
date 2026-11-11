@@ -159,9 +159,26 @@ How it stays private:
 
 Without a key, `--suggest` runs in **practice mode**: nothing is sent anywhere, and the output says it is not verified.
 
-## Website *(building)*
+## Website
 
-All of the above for any treasury, in the browser, with the same downloads.
+The same code runs in the browser. It reads the public NEAR endpoints directly, so there is no server.
+
+**Do:**
+
+```sh
+npm run site:build     # compiles core/ and site/app.ts to browser JavaScript (no bundler)
+npm run site:serve     # http://localhost:5180
+```
+
+Open `http://localhost:5180/?dao=daocubator.sputnik-dao.near`.
+
+**See:**
+- the figures, spending by account and month, the balance check, the questions, and the journal with the reason for each line;
+- every download from `--out`;
+- the close-the-books proposal, with a check that your account may submit it;
+- a "Check a report" box that rebuilds any `report.json` from the chain and shows the vote that approved it.
+
+Published at https://04-john.github.io/tickmark/ by [.github/workflows/pages.yml](.github/workflows/pages.yml). On every push, that workflow runs `npm run check` and builds the site.
 
 ## What Tickmark reads
 
@@ -190,9 +207,10 @@ Only money that moved counts as paid: the proposal is `Approved`, and for bulk l
 ```
 core/       reading the chain, decoding, dates, prices, accounts, journal, questions, balances, report, CSV
             (no Node-only imports: the website runs the same code)
-cli/        the tickmark command and the pipeline it shares with scripts
-scripts/    price snapshot refresh, token check, date proof, multi-DAO measurement
-data/       committed price snapshot
+cli/        the tickmark command, its NEAR AI client, and the Node wrapper around core/pipeline.ts
+site/       the website (index.html, styles.css, app.ts); built into site/dist
+scripts/    price snapshot refresh, token check, date proof, multi-DAO measurement, site build and preview
+data/       committed price snapshot, and the headline measurement (data/measure)
 test/       unit tests with fictional fixtures in real on-chain shapes
 ```
 
