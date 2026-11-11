@@ -1,7 +1,7 @@
 // Tickmark command line.
 //   node cli/tickmark.ts scan  <dao> [options]   every money movement, valued
 //   node cli/tickmark.ts books <dao> [options]   the books: categories, journal, monthly spending, suspense
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { centsToString, journal, statement, type JournalEntry } from '../core/books.ts';
@@ -11,7 +11,8 @@ import { kindName } from '../core/decode.ts';
 import { exportBooks } from '../core/exports.ts';
 import { datePayments, TxIndex } from '../core/history.ts';
 import { auditQuestions, type QuestionKind } from '../core/questions.ts';
-import { ARCHIVAL_RPC, Rpc, type Network } from '../core/rpc.ts';
+import { buildReport, fingerprintOf, firstDifference, signReport, type SignedReport } from '../core/report.ts';
+import { ARCHIVAL_RPC, Rpc, type BlockInfo, type Network } from '../core/rpc.ts';
 import { TokenBook } from '../core/tokens.ts';
 import { bookingTime, type Proposal } from '../core/types.ts';
 import { valueMovements, type ValuedMovement } from '../core/value.ts';
@@ -32,27 +33,63 @@ Options for books:
   --out DIR            write the bookkeeper's files to DIR (journal, QuickBooks, Xero, chart of accounts,
                        monthly spending, questions, and about-these-files.txt explaining them)
   --xero-tax-rate NAME tax rate name for the Xero file (default "Tax Exempt")
+  --block HEIGHT       build the books as of an earlier block (reads from an archival node)
+
+  Every run reads the chain at one block and prints the report's fingerprint (SHA-256). --out also writes
+  report.json, which anyone can check with:
+  node cli/tickmark.ts verify <report.json>
 
 Examples:
   node cli/tickmark.ts scan daocubator.sputnik-dao.near --lines
-  node cli/tickmark.ts books daocubator.sputnik-dao.near --out out/daocubator`;
+  node cli/tickmark.ts books daocubator.sputnik-dao.near --out out/daocubator
+  node cli/tickmark.ts verify out/daocubator/report.json`;
 
-type Options = { since?: string; network: Network; lines: boolean; json?: string; skipDates: boolean; out?: string; xeroTaxRate?: string };
+type Options = {
+  since?: string;
+  network: Network;
+  lines: boolean;
+  json?: string;
+  skipDates: boolean;
+  out?: string;
+  xeroTaxRate?: string;
+  block?: number;
+};
+
+const VERSION = (JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string }).version;
+const PRICE_ASSETS = ['near', 'eth', 'btc', 'zec', 'sol', 'aurora'] as const;
 
 const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 const cut = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 const oneLine = (s: string) => s.replace(/<br>/gi, ' ').replace(/\s+/g, ' ').trim();
 
-/** Reads the DAO, dates the payments and values them. Shared by every command. */
-async function load(dao: string, options: Options): Promise<{ sinceDate: string; proposals: Proposal[]; valued: ValuedMovement[]; dating: string; proposalPeriodMs?: number }> {
+type Loaded = {
+  sinceDate: string;
+  asOf: BlockInfo;
+  proposals: Proposal[];
+  valued: ValuedMovement[];
+  dating: string;
+  proposalPeriodMs?: number;
+  pricesThrough: Record<string, string>;
+};
+
+/**
+ * Reads the DAO, dates the payments and values them. Shared by every command.
+ * Every contract read is pinned to one block (the latest final block, or --block from an archival node),
+ * so the same block always gives the same books.
+ */
+async function load(dao: string, options: Options): Promise<Loaded> {
   const prices = loadPriceBook();
   const sinceDate = options.since ?? prices.range('near')?.from;
   if (!sinceDate) throw new Error('No NEAR prices in data/prices; run npm run prices:update');
   const sinceMs = Date.parse(`${sinceDate}T00:00:00Z`);
   if (Number.isNaN(sinceMs)) throw new Error(`--since must be YYYY-MM-DD, got ${sinceDate}`);
+  const pricesThrough = Object.fromEntries(PRICE_ASSETS.flatMap((a) => (prices.range(a) ? [[a, prices.range(a)!.to]] : [])));
 
-  const rpc = new Rpc({ network: options.network });
+  const archival = new Rpc({ network: options.network, url: ARCHIVAL_RPC[options.network] });
+  const head = options.block === undefined ? new Rpc({ network: options.network }) : archival;
+  const asOf = await head.block(options.block ?? 'final');
+  const rpc = head.at(asOf.height);
   const { proposals, movements: decoded } = await fetchMovements(rpc, dao, sinceMs);
   let movements = decoded;
   let dating = 'submission dates (--skip-dates)';
@@ -61,7 +98,7 @@ async function load(dao: string, options: Options): Promise<{ sinceDate: string;
       dao,
       sinceMs,
       index: new TxIndex({ network: options.network }),
-      archival: new Rpc({ network: options.network, url: ARCHIVAL_RPC[options.network] }),
+      archival,
     });
     movements = dated.movements;
     const r = dated.report;
@@ -70,7 +107,30 @@ async function load(dao: string, options: Options): Promise<{ sinceDate: string;
   }
   const policy = await fetchPolicy(rpc, dao).catch(() => null);
   const proposalPeriodMs = policy ? Number(BigInt(policy.proposal_period) / 1_000_000n) : undefined;
-  return { sinceDate, proposals, valued: await valueMovements(movements, new TokenBook(rpc), prices), dating, proposalPeriodMs };
+  return { sinceDate, asOf, proposals, valued: await valueMovements(movements, new TokenBook(rpc), prices), dating, proposalPeriodMs, pricesThrough };
+}
+
+/** The books and their signed report, built from one pinned read of the chain. */
+async function makeBooks(dao: string, options: Options) {
+  const loaded = await load(dao, options);
+  const classified = classify(loaded.valued);
+  const questions = auditQuestions(classified, loaded.proposals, { proposalPeriodMs: loaded.proposalPeriodMs, nowMs: loaded.asOf.timestampMs });
+  const entries = journal(classified);
+  const st = statement(entries);
+  const report = await signReport(
+    buildReport({
+      tickmark: VERSION,
+      dao,
+      network: options.network,
+      since: loaded.sinceDate,
+      asOf: { block: loaded.asOf.height, time: new Date(loaded.asOf.timestampMs).toISOString() },
+      pricesThrough: loaded.pricesThrough,
+      statement: st,
+      questions,
+      journal: entries,
+    }),
+  );
+  return { ...loaded, entries, st, questions, report };
 }
 
 async function scan(dao: string, options: Options) {
@@ -118,14 +178,10 @@ async function scan(dao: string, options: Options) {
 }
 
 async function books(dao: string, options: Options) {
-  const { sinceDate, proposals, valued, dating, proposalPeriodMs } = await load(dao, options);
-  const classified = classify(valued);
-  const questions = auditQuestions(classified, proposals, { proposalPeriodMs });
-  const entries = journal(classified);
-  const st = statement(entries);
+  const { sinceDate, asOf, dating, entries, st, questions, report } = await makeBooks(dao, options);
   const money = (cents: number) => usd(cents / 100).padStart(14);
 
-  console.log(`${dao} (${options.network}) since ${sinceDate}: ${entries.length} paid lines`);
+  console.log(`${dao} (${options.network}) since ${sinceDate}, as of block ${asOf.height} (${new Date(asOf.timestampMs).toISOString()}): ${entries.length} paid lines`);
   console.log(`  Payment dates: ${dating}`);
   const section = (title: string, which: string) => {
     const rows = st.rows.filter((r) => r.section === which);
@@ -165,16 +221,42 @@ async function books(dao: string, options: Options) {
     console.log(`\n  Journal (${entries.length} entries):`);
     for (const e of entries) printEntry(e, true);
   }
+  console.log(`\n  Report fingerprint (sha256): ${report.fingerprint}`);
   if (options.json) {
-    writeFileSync(options.json, JSON.stringify({ dao, network: options.network, since: sinceDate, statement: st, questions, journal: entries }, null, 2));
-    console.log(`\n  wrote the journal and statement to ${options.json}`);
+    writeFileSync(options.json, JSON.stringify(report, null, 2));
+    console.log(`  wrote the report to ${options.json}`);
   }
   if (options.out) {
-    const files = exportBooks({ dao, network: options.network, since: sinceDate, entries, statement: st, questions }, { xeroTaxRate: options.xeroTaxRate });
+    const files = [
+      ...exportBooks({ dao, network: options.network, since: sinceDate, entries, statement: st, questions }, { xeroTaxRate: options.xeroTaxRate }),
+      { name: 'report.json', content: JSON.stringify(report, null, 2) },
+    ];
     mkdirSync(options.out, { recursive: true });
     for (const f of files) writeFileSync(join(options.out, f.name), f.content);
-    console.log(`\n  wrote ${files.length} files to ${options.out}: ${files.map((f) => f.name).join(', ')}`);
+    console.log(`  wrote ${files.length} files to ${options.out}: ${files.map((f) => f.name).join(', ')}`);
   }
+}
+
+/** Checks a report: its fingerprint matches its content, and rebuilding it from the chain gives the same fingerprint. */
+async function verify(file: string, options: Options) {
+  const saved = JSON.parse(readFileSync(file, 'utf8')) as SignedReport;
+  const intact = (await fingerprintOf(saved)) === saved.fingerprint;
+  console.log(`${file}: ${saved.dao} (${saved.network}) since ${saved.since}, as of block ${saved.asOf.block}`);
+  console.log(`  fingerprint in the file:      ${saved.fingerprint}`);
+  console.log(`  the file's content hashes to: ${intact ? 'the same (the file was not edited)' : await fingerprintOf(saved)}`);
+  if (saved.tickmark !== VERSION) console.log(`  note: built by Tickmark ${saved.tickmark}, checking with ${VERSION}; different rules can give different books.`);
+  console.log(`  rebuilding from the chain at block ${saved.asOf.block} (archival node)...`);
+  const { report } = await makeBooks(saved.dao, { ...options, network: saved.network as Network, since: saved.since, block: saved.asOf.block });
+  const same = report.fingerprint === saved.fingerprint;
+  console.log(`  rebuilt fingerprint:          ${report.fingerprint}`);
+  if (same && intact) {
+    console.log('\n  VERIFIED: the report matches the chain.');
+    return;
+  }
+  const diff = firstDifference({ ...saved, fingerprint: undefined }, { ...report, fingerprint: undefined });
+  if (diff) console.log(`\n  first difference at ${diff.path}:\n    file:    ${cut(JSON.stringify(diff.a), 160)}\n    rebuilt: ${cut(JSON.stringify(diff.b), 160)}`);
+  console.log('\n  NOT VERIFIED.');
+  process.exitCode = 1;
 }
 
 function printEntry(e: JournalEntry, withEvidence = false) {
@@ -193,13 +275,14 @@ const { positionals, values } = parseArgs({
     'skip-dates': { type: 'boolean', default: false },
     out: { type: 'string' },
     'xero-tax-rate': { type: 'string' },
+    block: { type: 'string' },
     help: { type: 'boolean', short: 'h', default: false },
   },
 });
 
-const [command, dao] = positionals;
-const commands = { scan, books } as const;
-if (values.help || !dao || !(command && command in commands)) {
+const [command, target] = positionals;
+const commands = { scan, books, verify } as const;
+if (values.help || !target || !(command && command in commands)) {
   console.log(USAGE);
   process.exit(values.help ? 0 : 1);
 }
@@ -207,7 +290,12 @@ if (values.network !== 'mainnet' && values.network !== 'testnet') {
   console.error('--network must be mainnet or testnet');
   process.exit(1);
 }
-await commands[command as keyof typeof commands](dao, {
+const block = values.block === undefined ? undefined : Number(values.block);
+if (block !== undefined && !(Number.isSafeInteger(block) && block > 0)) {
+  console.error('--block must be a block height');
+  process.exit(1);
+}
+await commands[command as keyof typeof commands](target, {
   since: values.since,
   network: values.network,
   lines: values.lines,
@@ -215,4 +303,5 @@ await commands[command as keyof typeof commands](dao, {
   skipDates: values['skip-dates'],
   out: values.out,
   xeroTaxRate: values['xero-tax-rate'],
+  block,
 });
