@@ -6,6 +6,7 @@
 // ("close the books"), and `tickmark verify` recomputes it.
 import type { JournalEntry, Statement } from './books.ts';
 import type { Question } from './questions.ts';
+import type { BalanceCheck } from './reconcile.ts';
 
 export const REPORT_FORMAT = 'tickmark-report/1';
 
@@ -19,10 +20,14 @@ export type Report = {
   since: string;
   /** Every chain read was made at this block. */
   asOf: { block: number; time: string };
+  /** Opening balances were read at this block: the last one before the first day. */
+  opening: { block: number; time: string };
   /** Last day of each price series used, so a refreshed snapshot is visible. */
   pricesThrough: Record<string, string>;
   totals: { lines: number; spendingCents: number; suspenseCents: number; unpricedLines: number; questions: number };
   statement: Statement;
+  /** Opening + in − out = closing, per token and place, against the chain. */
+  balances: BalanceCheck[];
   questions: Question[];
   journal: JournalEntry[];
 };

@@ -104,12 +104,19 @@ export type RuleId =
   | 'unreadable_bulk_list'
   | 'unexplained';
 
+/** A token held in one place. */
+export type Holding = { token: string; location: Location };
+
 export type Booking = {
   category: CategoryId;
   /** The account debited: the category, or for money moved within the treasury the asset account it moved into. */
   debit: Account;
   /** The asset account the money left. */
   credit: Account;
+  /** What left, and from where (for checking balances against the chain). */
+  from: Holding;
+  /** For moves within the treasury: what arrived, and where (wNEAR for wrapped NEAR, the Intents balance for a deposit...). */
+  into?: Holding;
   rule: RuleId;
   basis: Basis;
   /** Why, in words a bookkeeper can check. */
@@ -157,7 +164,7 @@ export function categoryFromWords(text: string): { category: CategoryId; word: s
   return null;
 }
 
-type Draft = Omit<Booking, 'debit' | 'credit'> & { debit?: Account };
+type Draft = Omit<Booking, 'debit' | 'credit' | 'from'> & { debit?: Account };
 
 /** Rules 1-3a for one movement: everything that doesn't depend on other movements. */
 function placeAlone(m: ValuedMovement, d: Description, payee: string): Draft | null {
@@ -169,16 +176,17 @@ function placeAlone(m: ValuedMovement, d: Description, payee: string): Draft | n
     return {
       category: 'internal',
       debit: assetAccount(m.token, into),
+      into: { token: m.token, location: into },
       rule: 'to_self',
       basis: 'chain',
       evidence: into === 'intents' ? 'deposited into the treasury’s own NEAR Intents balance' : 'sent to the treasury itself',
     };
   }
   if (m.via === 'attached_deposit' && m.to === 'wrap.near' && m.method === 'near_deposit') {
-    return { category: 'internal', debit: assetAccount('wrap.near', 'wallet'), rule: 'wrap_near', basis: 'chain', evidence: 'near_deposit on wrap.near turns NEAR into the same amount of wNEAR' };
+    return { category: 'internal', debit: assetAccount('wrap.near', 'wallet'), into: { token: 'wrap.near', location: 'wallet' }, rule: 'wrap_near', basis: 'chain', evidence: 'near_deposit on wrap.near turns NEAR into the same amount of wNEAR' };
   }
   if (m.via === 'attached_deposit' && (STAKING_POOL.test(m.to) || action === 'stake') && STAKE_METHODS.has(m.method ?? '')) {
-    return { category: 'internal', debit: assetAccount('near', 'staked'), rule: 'stake_near', basis: 'chain', evidence: `${m.method} on staking pool ${m.to}` };
+    return { category: 'internal', debit: assetAccount('near', 'staked'), into: { token: 'near', location: 'staked' }, rule: 'stake_near', basis: 'chain', evidence: `${m.method} on staking pool ${m.to}` };
   }
   if (m.via === 'attached_deposit' && m.method === 'storage_deposit') {
     return { category: 'fees', rule: 'storage_deposit', basis: 'chain', evidence: `storage_deposit on ${m.to}: NEAR locked for the treasury’s storage there` };
@@ -254,6 +262,8 @@ export function classify(movements: ValuedMovement[]): Classified[] {
       category: placed.category,
       debit: placed.debit ?? { code: category.code, name: category.name },
       credit: assetAccount(m.token, sourceLocation(m)),
+      from: { token: m.token, location: sourceLocation(m) },
+      into: placed.into,
       rule: placed.rule,
       basis: placed.basis,
       evidence: via + placed.evidence,

@@ -1,22 +1,18 @@
 // Tickmark command line.
-//   node cli/tickmark.ts scan  <dao> [options]   every money movement, valued
-//   node cli/tickmark.ts books <dao> [options]   the books: categories, journal, monthly spending, suspense
+//   node cli/tickmark.ts scan   <dao> [options]   every money movement, valued
+//   node cli/tickmark.ts books  <dao> [options]   the books: categories, journal, monthly spending, questions, report
+//   node cli/tickmark.ts verify <report.json>      rebuild a report from the chain and compare fingerprints
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
-import { centsToString, journal, statement, type JournalEntry } from '../core/books.ts';
-import { classify } from '../core/classify.ts';
-import { fetchMovements, fetchPolicy } from '../core/dao.ts';
+import { centsToString, type JournalEntry } from '../core/books.ts';
 import { kindName } from '../core/decode.ts';
 import { exportBooks } from '../core/exports.ts';
-import { datePayments, TxIndex } from '../core/history.ts';
-import { auditQuestions, type QuestionKind } from '../core/questions.ts';
-import { buildReport, fingerprintOf, firstDifference, signReport, type SignedReport } from '../core/report.ts';
-import { ARCHIVAL_RPC, Rpc, type BlockInfo, type Network } from '../core/rpc.ts';
-import { TokenBook } from '../core/tokens.ts';
-import { bookingTime, type Proposal } from '../core/types.ts';
-import { valueMovements, type ValuedMovement } from '../core/value.ts';
-import { loadPriceBook } from './load.ts';
+import { type QuestionKind } from '../core/questions.ts';
+import { fingerprintOf, firstDifference, type SignedReport } from '../core/report.ts';
+import type { Network } from '../core/rpc.ts';
+import { bookingTime } from '../core/types.ts';
+import { load, makeBooks, VERSION, type PipelineOptions } from './pipeline.ts';
 
 const USAGE = `Usage:
   node cli/tickmark.ts scan  <dao-account> [options]   list every money movement with its USD value
@@ -44,94 +40,13 @@ Examples:
   node cli/tickmark.ts books daocubator.sputnik-dao.near --out out/daocubator
   node cli/tickmark.ts verify out/daocubator/report.json`;
 
-type Options = {
-  since?: string;
-  network: Network;
-  lines: boolean;
-  json?: string;
-  skipDates: boolean;
-  out?: string;
-  xeroTaxRate?: string;
-  block?: number;
-};
 
-const VERSION = (JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string }).version;
-const PRICE_ASSETS = ['near', 'eth', 'btc', 'zec', 'sol', 'aurora'] as const;
+type Options = PipelineOptions & { lines: boolean; json?: string; out?: string; xeroTaxRate?: string };
 
 const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 const cut = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 const oneLine = (s: string) => s.replace(/<br>/gi, ' ').replace(/\s+/g, ' ').trim();
-
-type Loaded = {
-  sinceDate: string;
-  asOf: BlockInfo;
-  proposals: Proposal[];
-  valued: ValuedMovement[];
-  dating: string;
-  proposalPeriodMs?: number;
-  pricesThrough: Record<string, string>;
-};
-
-/**
- * Reads the DAO, dates the payments and values them. Shared by every command.
- * Every contract read is pinned to one block (the latest final block, or --block from an archival node),
- * so the same block always gives the same books.
- */
-async function load(dao: string, options: Options): Promise<Loaded> {
-  const prices = loadPriceBook();
-  const sinceDate = options.since ?? prices.range('near')?.from;
-  if (!sinceDate) throw new Error('No NEAR prices in data/prices; run npm run prices:update');
-  const sinceMs = Date.parse(`${sinceDate}T00:00:00Z`);
-  if (Number.isNaN(sinceMs)) throw new Error(`--since must be YYYY-MM-DD, got ${sinceDate}`);
-  const pricesThrough = Object.fromEntries(PRICE_ASSETS.flatMap((a) => (prices.range(a) ? [[a, prices.range(a)!.to]] : [])));
-
-  const archival = new Rpc({ network: options.network, url: ARCHIVAL_RPC[options.network] });
-  const head = options.block === undefined ? new Rpc({ network: options.network }) : archival;
-  const asOf = await head.block(options.block ?? 'final');
-  const rpc = head.at(asOf.height);
-  const { proposals, movements: decoded } = await fetchMovements(rpc, dao, sinceMs);
-  let movements = decoded;
-  let dating = 'submission dates (--skip-dates)';
-  if (!options.skipDates) {
-    const dated = await datePayments(movements, {
-      dao,
-      sinceMs,
-      index: new TxIndex({ network: options.network }),
-      archival,
-    });
-    movements = dated.movements;
-    const r = dated.report;
-    dating = `${r.approvalVotes} from the approving vote, ${r.bulkPaidBlocks} from the bulk line's paid block, ${r.submissionDates} not found (submission date used)`;
-    for (const problem of r.problems.slice(0, 3)) console.error(`  warning: ${problem}`);
-  }
-  const policy = await fetchPolicy(rpc, dao).catch(() => null);
-  const proposalPeriodMs = policy ? Number(BigInt(policy.proposal_period) / 1_000_000n) : undefined;
-  return { sinceDate, asOf, proposals, valued: await valueMovements(movements, new TokenBook(rpc), prices), dating, proposalPeriodMs, pricesThrough };
-}
-
-/** The books and their signed report, built from one pinned read of the chain. */
-async function makeBooks(dao: string, options: Options) {
-  const loaded = await load(dao, options);
-  const classified = classify(loaded.valued);
-  const questions = auditQuestions(classified, loaded.proposals, { proposalPeriodMs: loaded.proposalPeriodMs, nowMs: loaded.asOf.timestampMs });
-  const entries = journal(classified);
-  const st = statement(entries);
-  const report = await signReport(
-    buildReport({
-      tickmark: VERSION,
-      dao,
-      network: options.network,
-      since: loaded.sinceDate,
-      asOf: { block: loaded.asOf.height, time: new Date(loaded.asOf.timestampMs).toISOString() },
-      pricesThrough: loaded.pricesThrough,
-      statement: st,
-      questions,
-      journal: entries,
-    }),
-  );
-  return { ...loaded, entries, st, questions, report };
-}
 
 async function scan(dao: string, options: Options) {
   const { sinceDate, proposals, valued, dating } = await load(dao, options);
@@ -178,7 +93,7 @@ async function scan(dao: string, options: Options) {
 }
 
 async function books(dao: string, options: Options) {
-  const { sinceDate, asOf, dating, entries, st, questions, report } = await makeBooks(dao, options);
+  const { sinceDate, asOf, dating, entries, st, questions, report, balances, opening } = await makeBooks(dao, options);
   const money = (cents: number) => usd(cents / 100).padStart(14);
 
   console.log(`${dao} (${options.network}) since ${sinceDate}, as of block ${asOf.height} (${new Date(asOf.timestampMs).toISOString()}): ${entries.length} paid lines`);
@@ -205,6 +120,14 @@ async function books(dao: string, options: Options) {
       `payee history ${basis.get('payee_history') ?? 0} (${pct(basis.get('payee_history') ?? 0)}), not placed ${basis.get('none') ?? 0} (${pct(basis.get('none') ?? 0)})`,
   );
 
+  const n = (s: string | null) => (s === null ? '?' : Number(s).toLocaleString('en-US', { maximumFractionDigits: 2 }));
+  const verdict = { ties: 'ties out', received: 'received from outside the proposals', unexplained_outflow: 'MONEY LEFT UNSEEN (question asked)', unreadable: 'could not be read' };
+  console.log(`\n  Balances checked against the chain (opening: block ${opening.height}, ${new Date(opening.timestampMs).toISOString().slice(0, 10)}; closing: block ${asOf.height}):`);
+  console.log(`    ${'token'.padEnd(10)} ${'place'.padEnd(8)} ${'opening'.padStart(16)} ${'− paid out'.padStart(16)} ${'+ moved in'.padStart(14)} ${'+ other in'.padStart(16)} ${'= closing'.padStart(16)}`);
+  for (const b of balances) {
+    console.log(`    ${cut(b.symbol, 10).padEnd(10)} ${b.location.padEnd(8)} ${n(b.opening).padStart(16)} ${n(b.bookedOut).padStart(16)} ${n(b.movedIn).padStart(14)} ${n(b.otherIn).padStart(16)} ${n(b.closing).padStart(16)}  ${verdict[b.status]}`);
+  }
+
   const suspense = entries.filter((e) => e.section === 'suspense').sort((a, b) => (b.cents ?? 0) - (a.cents ?? 0));
   if (suspense.length) {
     console.log(`\n  Largest lines in Suspense:`);
@@ -228,7 +151,18 @@ async function books(dao: string, options: Options) {
   }
   if (options.out) {
     const files = [
-      ...exportBooks({ dao, network: options.network, since: sinceDate, entries, statement: st, questions }, { xeroTaxRate: options.xeroTaxRate }),
+      ...exportBooks(
+        {
+          dao,
+          network: options.network,
+          since: sinceDate,
+          entries,
+          statement: st,
+          questions,
+          balances: { checks: balances, openingBlock: opening.height, openingDate: sinceDate, closingBlock: asOf.height },
+        },
+        { xeroTaxRate: options.xeroTaxRate },
+      ),
       { name: 'report.json', content: JSON.stringify(report, null, 2) },
     ];
     mkdirSync(options.out, { recursive: true });

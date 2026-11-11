@@ -29,8 +29,10 @@ function sampleReport() {
     network: 'mainnet',
     since: '2026-01-01',
     asOf: { block: 200_000_000, time: '2026-11-11T00:00:00.000Z' },
+    opening: { block: 150_000_000, time: '2025-12-31T23:59:59.400Z' },
     pricesThrough: { near: '2026-11-10' },
     statement: statement(entries),
+    balances: [],
     questions: auditQuestions(classified, [fx.nativeTransfer], { nowMs: Date.parse('2026-11-11') }),
     journal: entries,
   });

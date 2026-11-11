@@ -118,6 +118,17 @@ export class Rpc implements ViewClient, BlockClient {
     return JSON.parse(new TextDecoder().decode(Uint8Array.from(result.result))) as T;
   }
 
+  /** An account's native NEAR balance (yoctoNEAR strings) at the pinned block, or the latest final block. */
+  async viewAccount(accountId: string): Promise<{ amount: string; locked: string }> {
+    const at = this.blockId === undefined ? { finality: 'final' } : { block_id: this.blockId };
+    try {
+      return await this.call<{ amount: string; locked: string }>('query', { request_type: 'view_account', ...at, account_id: accountId }, `view_account ${accountId}`);
+    } catch (error) {
+      if (error instanceof FinalError) throw new ViewError(error.message, accountId, 'view_account');
+      throw error;
+    }
+  }
+
   /** A block's height, hash and time. Blocks older than about two days need an archival endpoint. */
   async block(ref: number | 'final' = 'final'): Promise<BlockInfo> {
     const params = ref === 'final' ? { finality: 'final' } : { block_id: ref };

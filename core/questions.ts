@@ -8,6 +8,7 @@ import { bookingTime, type Proposal } from './types.ts';
 export type QuestionKind =
   | 'possible_duplicate'
   | 'memo_amount_mismatch'
+  | 'balance_gap'
   | 'possibly_still_owed'
   | 'payee_voted'
   | 'large_without_description'
@@ -42,7 +43,7 @@ export type QuestionOptions = {
 };
 
 const DAY = 86_400_000;
-const KIND_ORDER: QuestionKind[] = ['possible_duplicate', 'memo_amount_mismatch', 'possibly_still_owed', 'payee_voted', 'large_without_description', 'unnamed_payee', 'unexplained'];
+const KIND_ORDER: QuestionKind[] = ['possible_duplicate', 'memo_amount_mismatch', 'balance_gap', 'possibly_still_owed', 'payee_voted', 'large_without_description', 'unnamed_payee', 'unexplained'];
 
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 const dollars = (cents: number | null) => (cents === null ? 'no price' : `$${Math.round(cents / 100).toLocaleString('en-US')}`);
@@ -264,5 +265,10 @@ export function auditQuestions(items: Classified[], proposals: Proposal[], optio
     }
   }
 
-  return questions.sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || (b.cents ?? -1) - (a.cents ?? -1) || a.id.localeCompare(b.id));
+  return sortQuestions(questions);
+}
+
+/** Questions in reading order: by kind, then largest amount first. */
+export function sortQuestions(questions: Question[]): Question[] {
+  return [...questions].sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || (b.cents ?? -1) - (a.cents ?? -1) || a.id.localeCompare(b.id));
 }
