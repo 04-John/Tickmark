@@ -12,7 +12,16 @@ import { type QuestionKind } from '../core/questions.ts';
 import { fingerprintOf, firstDifference, type SignedReport } from '../core/report.ts';
 import type { Network } from '../core/rpc.ts';
 import { bookingTime } from '../core/types.ts';
+import { suspenseGroups } from '../core/suggest.ts';
+import { suggest } from './near-ai.ts';
 import { load, makeBooks, VERSION, type PipelineOptions } from './pipeline.ts';
+
+// NEAR_AI_API_KEY may live in .env (git-ignored). Never required: without it, --suggest runs in practice mode.
+try {
+  process.loadEnvFile('.env');
+} catch {
+  // no .env: fine
+}
 
 const USAGE = `Usage:
   node cli/tickmark.ts scan  <dao-account> [options]   list every money movement with its USD value
@@ -30,6 +39,11 @@ Options for books:
                        monthly spending, questions, and about-these-files.txt explaining them)
   --xero-tax-rate NAME tax rate name for the Xero file (default "Tax Exempt")
   --block HEIGHT       build the books as of an earlier block (reads from an archival node)
+  --suggest            ask a NEAR AI model running in a TEE to suggest an account for each Suspense payee
+                       (needs NEAR_AI_API_KEY in .env; without it, practice mode sends nothing). Checks the
+                       attestation (fresh nonce) and the reply's signature; writes suggestions.json with --out
+  --notes FILE         private notes for --suggest (vendor list, agreements), sent only inside the encrypted request
+  --model ID           NEAR AI model for --suggest (default z-ai/glm-5.3-flash; must be a verifiable TEE model)
 
   Every run reads the chain at one block and prints the report's fingerprint (SHA-256). --out also writes
   report.json, which anyone can check with:
@@ -41,7 +55,7 @@ Examples:
   node cli/tickmark.ts verify out/daocubator/report.json`;
 
 
-type Options = PipelineOptions & { lines: boolean; json?: string; out?: string; xeroTaxRate?: string };
+type Options = PipelineOptions & { lines: boolean; json?: string; out?: string; xeroTaxRate?: string; suggest: boolean; notes?: string; model?: string };
 
 const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
@@ -169,6 +183,44 @@ async function books(dao: string, options: Options) {
     for (const f of files) writeFileSync(join(options.out, f.name), f.content);
     console.log(`  wrote ${files.length} files to ${options.out}: ${files.map((f) => f.name).join(', ')}`);
   }
+  if (options.suggest) await suggestForSuspense(dao, report.fingerprint, entries, options);
+}
+
+/** Private suggestions for Suspense (NEAR AI, TEE), kept apart from the books. */
+async function suggestForSuspense(dao: string, fingerprint: string, entries: JournalEntry[], options: Options) {
+  const groups = suspenseGroups(entries);
+  console.log(`\n  Suggestions for ${groups.length} payee${groups.length === 1 ? '' : 's'} in Suspense${groups.length ? '' : ': nothing to suggest'}`);
+  if (!groups.length) return;
+  const notes = options.notes ? readFileSync(options.notes, 'utf8') : undefined;
+  const file = await suggest({
+    dao,
+    reportFingerprint: fingerprint,
+    groups,
+    apiKey: process.env.NEAR_AI_API_KEY || undefined,
+    model: options.model,
+    notes,
+    onStep: (s) => console.log(`    … ${s}`),
+  });
+  for (const s of file.suggestions) {
+    console.log(`    • ${cut(s.payee, 30)} → ${s.categoryName} (${s.confidence}): ${s.reason}`);
+    console.log(`        ask: ${s.question}`);
+  }
+  for (const p of file.problems) console.log(`    ! ${p}`);
+  const v = file.verification;
+  if (v) {
+    console.log('\n  Verified:');
+    console.log(`    ✓ ${v.model} is listed by NEAR AI as a verifiable TEE model`);
+    console.log(`    ✓ attestation fetched with a fresh nonce (${v.attestation.nonces.map((n) => n.slice(0, 16) + '…').join(', ') || 'nonce inside the SDK'}) and verified; TCB ${v.attestation.tcbStatus ?? 'n/a'}; GPU ${v.attestation.gpuEvidence ?? 'n/a'}`);
+    console.log(`    ✓ request end-to-end encrypted to the attested model key`);
+    console.log(`    ✓ reply signed by ${v.replySignature.signer} (${v.replySignature.kind}); signature checked`);
+    console.log(`    ✓ nothing stored on a server: Tickmark has none${notes ? '; your notes were sent only inside the encrypted request' : ''}`);
+  } else {
+    console.log('\n  PRACTICE MODE (no NEAR_AI_API_KEY): no AI was called, nothing was sent, nothing is verified.');
+  }
+  if (options.out) {
+    writeFileSync(join(options.out, 'suggestions.json'), JSON.stringify(file, null, 2));
+    console.log(`  wrote ${join(options.out, 'suggestions.json')} (separate from the books; it never changes report.json)`);
+  }
 }
 
 /** Checks a report: its fingerprint matches its content, and rebuilding it from the chain gives the same fingerprint. */
@@ -209,6 +261,9 @@ const { positionals, values } = parseArgs({
     'skip-dates': { type: 'boolean', default: false },
     out: { type: 'string' },
     'xero-tax-rate': { type: 'string' },
+    suggest: { type: 'boolean', default: false },
+    notes: { type: 'string' },
+    model: { type: 'string' },
     block: { type: 'string' },
     help: { type: 'boolean', short: 'h', default: false },
   },
@@ -238,4 +293,7 @@ await commands[command as keyof typeof commands](target, {
   out: values.out,
   xeroTaxRate: values['xero-tax-rate'],
   block,
+  suggest: values.suggest,
+  notes: values.notes,
+  model: values.model,
 });

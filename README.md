@@ -117,9 +117,29 @@ Every run reads the chain at one block. The report records that block, the price
 
 Tickmark drafts a normal proposal for the DAO that carries the report's fingerprint. The council approves it with the treasury's own voting rules: no new multisig, no new contract. Anyone can then run `verify` on the report the DAO voted on.
 
-## Private suggestions for Suspense *(building)*
+## Private suggestions for Suspense
 
-NEAR AI Cloud suggests a category and a question for each Suspense line, running on a hardware-secured (TEE) model. Each reply's signature and the hardware attestation are checked and shown. Suggestions never override rule evidence, and nothing is stored on a server.
+**Do:**
+
+```sh
+cp .env.example .env    # then put your NEAR AI Cloud key in it
+node cli/tickmark.ts books daocubator.sputnik-dao.near --suggest --notes my-vendors.txt --out out/daocubator
+```
+
+**See:** for each payee in Suspense, a suggested account, a confidence, the reason, and the question to ask the treasurer. Below them is a **Verified** list, with each check that passed:
+
+- the model is listed by NEAR AI (`/v1/model/list`) as verifiable, with attestation support;
+- the model's and the gateway's attestation were fetched with a fresh random nonce and verified (Intel TDX quote, NVIDIA GPU evidence, measured deployment);
+- the request was end-to-end encrypted to the attested model key;
+- the reply's signature was checked against the attested signer;
+- nothing is stored on a server: Tickmark has none.
+
+How it stays private:
+- **Only Suspense is sent.** Lines the rules placed are never sent.
+- **Notes stay inside the request.** Your private notes (a vendor list, agreements) travel only inside the encrypted request to the TEE.
+- **Kept apart from the books.** Suggestions go to `suggestions.json`, never into the books or `report.json`, because AI output varies between runs and the books must not. A suggestion with an account outside the chart, or for a payee that wasn't sent, is dropped and reported.
+
+Without a key, `--suggest` runs in **practice mode**: nothing is sent anywhere, and the output says it is not verified.
 
 ## Website *(building)*
 
