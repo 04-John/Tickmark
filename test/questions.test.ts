@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { classify } from '../core/classify.ts';
 import { decodeProposal } from '../core/decode.ts';
-import { auditQuestions, isUnnamed, saysNothing, statedAmounts, type QuestionKind } from '../core/questions.ts';
+import { auditQuestions, invoiceNumbers, isUnnamed, saysNothing, statedAmounts, type QuestionKind } from '../core/questions.ts';
 import { KNOWN_TOKENS } from '../core/tokens.ts';
 import type { Proposal, ProposalStatus } from '../core/types.ts';
 import { formatUnits } from '../core/units.ts';
@@ -58,7 +58,7 @@ test('a same-amount payment to the same payee within two weeks is asked about; a
   ]);
   const dup = qs.filter((q) => q.kind === 'possible_duplicate');
   assert.equal(dup.length, 1);
-  assert.equal(dup[0]!.ask, 'Was designer.near paid twice? #1 and #2 each sent 900 USDC, 3 days apart.');
+  assert.equal(dup[0]!.ask, 'Was invoice 7 paid twice? #1 and #2 each sent 900 USDC to designer.near, 3 days apart.');
   assert.deepEqual(dup[0]!.proposals, [1, 2]);
 });
 
@@ -74,6 +74,17 @@ test('repeats are one question per cluster, small repeats are ignored, and one b
   assert.equal(dup.length, 1, '1 NEAR ($2) twice is below the $100 floor');
   assert.equal(dup[0]!.ask, 'Was transit.near meant to be paid 3 times? #1, #2 and #3 each sent 45,000 NEAR, within 4 days.');
   assert.equal(dup[0]!.cents, 2 * 90_000_00, 'at stake: the repeats, not the first payment');
+});
+
+test('the same invoice number paid twice is asked about at any amount', () => {
+  const qs = ask([
+    { id: 1, day: '2026-03-01', to: 'studio.near', amount: near(1), memo: 'Website design, invoice 41' },
+    { id: 2, day: '2026-03-01', to: 'studio.near', amount: near(1), memo: 'Website design, Invoice #41' },
+    { id: 3, day: '2026-03-02', to: 'cafe.near', amount: near(1), memo: 'Invoice 7' },
+    { id: 4, day: '2026-03-02', to: 'cafe.near', amount: near(1), memo: 'Invoice 8' },
+  ]).filter((q) => q.kind === 'possible_duplicate');
+  assert.deepEqual(qs.map((q) => q.ask), ['Was invoice 41 paid twice? #1 and #2 each sent 1 NEAR to studio.near, on the same day.']);
+  assert.deepEqual(invoiceNumbers('INV-0042 and inv 47; invoice no. 9'), ['42', '47', '9']);
 });
 
 test('payee votes are one question per payee', () => {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { assetAccount, categoryFromWords, classify, type Classified } from '../core/classify.ts';
+import { assetAccount, categoryFromWords, classify, isSputnikDao, sameNameAccount, type Classified } from '../core/classify.ts';
 import { decodeProposal } from '../core/decode.ts';
 import { parseDescription } from '../core/describe.ts';
 import { KNOWN_TOKENS } from '../core/tokens.ts';
@@ -136,6 +136,13 @@ test('the own-name inference is the weakest: words and payee history about that 
   const [honorarium, later] = run(pay(70, 'Honorarium'), pay(71, 'nov/dec'));
   assert.deepEqual([honorarium!.booking?.category, honorarium!.booking?.basis], ['payroll', 'memo'], 'a person can own the account named like the DAO');
   assert.deepEqual([later!.booking?.category, later!.booking?.basis], ['payroll', 'payee_history']);
+});
+
+test('Sputnik DAO names on mainnet and testnet', () => {
+  assert.ok(isSputnikDao('acme.sputnik-dao.near') && isSputnikDao('acme.sputnik-v2.testnet'));
+  assert.ok(!isSputnikDao('sputnik-dao.near') && !isSputnikDao('acme.near'));
+  assert.ok(sameNameAccount('acme.sputnik-v2.testnet', 'acme.testnet'));
+  assert.ok(!sameNameAccount('acme.sputnik-v2.testnet', 'acme.near'));
 });
 
 test('amounts that are not whole numbers cannot move money and are left out', () => {

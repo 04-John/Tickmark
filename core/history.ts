@@ -27,7 +27,7 @@ export type IndexedReceipt = {
 export type IndexedTx = { transaction: { hash: string }; receipts: IndexedReceipt[] };
 
 export interface TxSource {
-  /** One page of successful function-call transactions touching `account`, newest first. */
+  /** One page of function-call transactions touching `account`, newest first. Failed ones too: a vote that went through can sit in a transaction whose payment receipt failed. */
   accountTxs(account: string, resumeToken?: string): Promise<{ txs: AccountTx[]; resumeToken?: string }>;
   /** Full transactions with their receipts; at most 20 hashes per call. */
   transactions(hashes: string[]): Promise<IndexedTx[]>;
@@ -72,7 +72,6 @@ export class TxIndex implements TxSource {
     const page = await this.post<{ account_txs?: AccountTx[]; resume_token?: string }>('/v0/account', {
       account_id: account,
       is_function_call: true,
-      is_success: true,
       limit: 200,
       ...(resumeToken ? { resume_token: resumeToken } : {}),
     });

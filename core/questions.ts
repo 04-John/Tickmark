@@ -96,6 +96,18 @@ function bulkListTotal(proposal: Proposal | undefined, line: Classified): { unit
 
 const close = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.005 * Math.max(a, b), 0.01);
 
+/** Invoice numbers a description mentions: "Invoice 41", "inv 47", "invoice #12", "INV-0042". */
+export function invoiceNumbers(text: string): string[] {
+  return [...text.matchAll(/\binv(?:oice)?\.?\s*(?:no\.?|number)?\s*[#-]?\s*(\d{1,10})\b/gi)].map((m) => String(Number(m[1])));
+}
+
+/** The invoice number every line of a cluster mentions, or null. */
+function sharedInvoice(lines: Classified[]): string | null {
+  const [first, ...rest] = lines.map((c) => new Set(invoiceNumbers(c.memoText)));
+  for (const n of first ?? []) if (rest.every((s) => s.has(n))) return n;
+  return null;
+}
+
 /** "#1, #2 and #3" (the first `max`, then "and N more"). */
 function ids(list: number[], max = 6): string {
   const shown = list.slice(0, max).map((i) => `#${i}`);
@@ -127,16 +139,19 @@ export function auditQuestions(items: Classified[], proposals: Proposal[], optio
     const flush = () => {
       const clusterIds = uniqueIds(cluster);
       const first = cluster[0];
-      if (first && clusterIds.length >= 2 && (centsOf(first) ?? 0) >= minDuplicateCents) {
+      // The same invoice number in every description is a strong signal at any amount; otherwise small repeats are ignored.
+      const invoice = first ? sharedInvoice(cluster) : null;
+      if (first && clusterIds.length >= 2 && (invoice || (centsOf(first) ?? 0) >= minDuplicateCents)) {
         const days = Math.round((bookingTime(cluster[cluster.length - 1]!) - bookingTime(first)) / DAY);
         const when = days === 0 ? 'on the same day' : clusterIds.length === 2 ? `${plural(days, 'day')} apart` : `within ${plural(days, 'day')}`;
+        const what = invoice ? `invoice ${invoice}` : short(first.payee);
         questions.push({
           id: `possible_duplicate:${clusterIds.join(',')}`,
           kind: 'possible_duplicate',
           ask:
             clusterIds.length === 2
-              ? `Was ${short(first.payee)} paid twice? ${ids(clusterIds)} each sent ${amount(first)}, ${when}.`
-              : `Was ${short(first.payee)} meant to be paid ${clusterIds.length} times? ${ids(clusterIds)} each sent ${amount(first)}, ${when}.`,
+              ? `Was ${what} paid twice? ${ids(clusterIds)} each sent ${amount(first)}${invoice ? ` to ${short(first.payee)}` : ''}, ${when}.`
+              : `Was ${what} meant to be paid ${clusterIds.length} times? ${ids(clusterIds)} each sent ${amount(first)}${invoice ? ` to ${short(first.payee)}` : ''}, ${when}.`,
           facts: cluster.map((c) => `#${c.proposalId} paid ${amount(c)} on ${day(bookingTime(c))}: ${c.memoText || 'no description'}`),
           proposals: clusterIds,
           payee: first.payee,

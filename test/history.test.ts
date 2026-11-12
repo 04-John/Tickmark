@@ -192,7 +192,7 @@ test('TxIndex asks for successful function calls, pages with the resume token an
   assert.equal(f.sent.length, 2);
   assert.deepEqual(f.sent[1], {
     url: 'https://tx.main.fastnear.com/v0/account',
-    body: { account_id: fx.DAO, is_function_call: true, is_success: true, limit: 200, resume_token: 'r1' },
+    body: { account_id: fx.DAO, is_function_call: true, limit: 200, resume_token: 'r1' },
   });
 });
 
