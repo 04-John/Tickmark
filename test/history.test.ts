@@ -48,7 +48,7 @@ test('the approving vote is the latest successful VoteApprove on the DAO', () =>
   ];
   const approvals = approvalsFromTxs(fx.DAO, txs);
   assert.deepEqual([...approvals.keys()], [7]);
-  assert.deepEqual(approvals.get(7), { proposalId: 7, atMs: Date.parse('2026-03-04T15:30:00Z'), blockHeight: 200, txHash: 'h2' });
+  assert.deepEqual(approvals.get(7), { proposalId: 7, atMs: Date.parse('2026-03-04T15:30:00Z'), blockHeight: 200, txHash: 'h2', failedReceivers: [] });
 });
 
 /** A fake index: pages of account rows (newest first) and the full transactions behind them. */
@@ -127,7 +127,20 @@ test('datePayments uses the bulk line block, then the approving vote, then says 
   assert.match(u!.note ?? '', /submission date used/);
   assert.equal(f, failed, 'unexecuted movements are left alone');
   assert.deepEqual([b!.dateSource, b!.paidAt, b!.paidAtBlock, b!.approvalTx], ['bulk_paid_block', Date.parse('2026-03-06T10:00:00Z'), 555, 'v6']);
-  assert.deepEqual(report, { approvalVotes: 1, bulkPaidBlocks: 1, submissionDates: 1, problems: [] });
+  assert.deepEqual(report, { approvalVotes: 1, bulkPaidBlocks: 1, submissionDates: 1, bounced: 0, problems: [] });
+});
+
+test('an approved payment whose transfer failed on chain is not paid, and the payee may still be owed', async () => {
+  // Seen on testnet: Sputnik marks a transfer to a missing account Approved, but the transfer receipt fails and the NEAR comes back.
+  const [m] = decodeProposal(fx.DAO, fx.nativeTransfer); // 133 NEAR to designer.near
+  const bounce: IndexedReceipt = {
+    execution_outcome: { block_height: 401, block_timestamp: ns('2026-03-04T08:00:01Z'), outcome: { status: { Failure: { ActionError: { index: 0, kind: { AccountDoesNotExist: { account_id: 'designer.near' } } } } } } },
+    receipt: { receiver_id: 'designer.near', predecessor_id: fx.DAO, receipt: { Action: { actions: [{ Transfer: { deposit: '1' } }] } } },
+  };
+  const index = fakeIndex([[{ at: '2026-03-04T00:00:00Z', tx: tx('v1', voteReceipt(fx.DAO, 1, 'VoteApprove', '2026-03-04T08:00:00Z', 400), bounce) }]]);
+  const { movements, report } = await datePayments([m!], { dao: fx.DAO, sinceMs: 0, index });
+  assert.deepEqual([movements[0]!.executed, movements[0]!.bounced, movements[0]!.status, report.bounced], [false, true, 'Approved', 1]);
+  assert.match(movements[0]!.note ?? '', /payment failed on chain and the money came back/);
 });
 
 test('datePayments survives a broken index or archival node', async () => {

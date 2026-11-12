@@ -159,10 +159,17 @@ const STAKE_METHODS = new Set(['deposit_and_stake', 'deposit', 'stake']);
 const short = (account: string) => (/^[0-9a-f]{64}$/.test(account) ? `${account.slice(0, 6)}…${account.slice(-4)}` : account);
 const fmt = (quantity: string) => Number(quantity).toLocaleString('en-US', { maximumFractionDigits: 6 });
 
-/** True when the payee is the DAO's own name on the plain registry: x.near for x.sputnik-dao.near. */
+/** Accounts made by the Sputnik DAO factories: x.sputnik-dao.near on mainnet, x.sputnik-v2.testnet (and older names) on testnet. */
+const SPUTNIK_DAO = /^([^.]+)\.(sputnik-dao\.near|sputnik-v2\.testnet|sputnikv2\.testnet|sputnik-dao\.testnet)$/;
+
+export function isSputnikDao(account: string): boolean {
+  return SPUTNIK_DAO.test(account);
+}
+
+/** True when the payee is the DAO's own name on the plain registry: x.near for x.sputnik-dao.near, x.testnet on testnet. */
 export function sameNameAccount(dao: string, payee: string): boolean {
-  const m = /^([^.]+)\.sputnik-dao\.(near|testnet)$/.exec(dao);
-  return Boolean(m && payee === `${m[1]}.${m[2]}`);
+  const m = SPUTNIK_DAO.exec(dao);
+  return Boolean(m && payee === `${m[1]}.${m[2]!.endsWith('.near') ? 'near' : 'testnet'}`);
 }
 
 function ownNamePlacement(payee: string): Draft {
@@ -224,7 +231,7 @@ function placeAlone(m: ValuedMovement, d: Description, payee: string): Draft | n
     const cat = CATEGORIES[words.category];
     return { category: words.category, rule: 'memo_words', basis: 'memo', evidence: `the proposal says “${words.word}” → ${cat.name}` };
   }
-  if (payee.endsWith('.sputnik-dao.near')) {
+  if (isSputnikDao(payee)) {
     return { category: 'other_daos', rule: 'other_dao', basis: 'chain', evidence: `the payee ${payee} is another Sputnik DAO` };
   }
   return null;

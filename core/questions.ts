@@ -178,9 +178,9 @@ export function auditQuestions(items: Classified[], proposals: Proposal[], optio
   for (const c of items) {
     if (c.executed || CATEGORIES[c.intended].section === 'balance_sheet' || c.payee === c.dao) continue;
     const openTooLong = c.status === 'InProgress' && options.proposalPeriodMs !== undefined && now - c.proposedAt > options.proposalPeriodMs;
-    if (c.status !== 'Failed' && c.status !== 'Expired' && !openTooLong) continue;
+    if (c.status !== 'Failed' && c.status !== 'Expired' && !openTooLong && !c.bounced) continue;
     if (paid.some((p) => p.payee === c.payee && p.token === c.token && p.amount === c.amount && bookingTime(p) >= c.proposedAt)) continue;
-    const what = c.status === 'Failed' ? 'failed on chain' : c.status === 'Expired' ? 'expired without a decision' : `has been open since ${day(c.proposedAt)}, past the voting period`;
+    const what = c.bounced ? 'was approved, but the payment failed on chain and the money came back' : c.status === 'Failed' ? 'failed on chain' : c.status === 'Expired' ? 'expired without a decision' : `has been open since ${day(c.proposedAt)}, past the voting period`;
     questions.push({
       id: `possibly_still_owed:${c.proposalId}:${c.line}`,
       kind: 'possibly_still_owed',

@@ -86,10 +86,30 @@ export class TxIndex implements TxSource {
   }
 }
 
-export type Approval = { proposalId: number; atMs: number; blockHeight: number; txHash: string };
+export type Approval = {
+  proposalId: number;
+  atMs: number;
+  blockHeight: number;
+  txHash: string;
+  /** Accounts the DAO paid in that transaction whose receipt failed (the money came back). */
+  failedReceivers: string[];
+};
 
 const succeeded = (status: IndexedReceipt['execution_outcome']['outcome']['status']) =>
   typeof status === 'object' && status !== null && ('SuccessValue' in status || 'SuccessReceiptId' in status);
+
+/**
+ * Accounts the DAO sent a receipt to in this transaction that failed: a transfer to an account that doesn't exist,
+ * an ft_transfer the token contract refused. Sputnik can still mark such a proposal Approved, but the money came back.
+ */
+function failedOutgoing(dao: string, tx: IndexedTx): string[] {
+  const out = new Set<string>();
+  for (const r of tx.receipts ?? []) {
+    const status = r.execution_outcome?.outcome?.status;
+    if (r.receipt?.predecessor_id === dao && typeof status === 'object' && status !== null && 'Failure' in status) out.add(r.receipt.receiver_id);
+  }
+  return [...out];
+}
 
 /**
  * Successful `act_proposal` VoteApprove receipts executed by the DAO, latest per proposal.
@@ -115,6 +135,7 @@ export function approvalsFromTxs(dao: string, txs: IndexedTx[]): Map<number, App
           atMs: Math.floor(Number(r.execution_outcome.block_timestamp) / 1e6),
           blockHeight,
           txHash: tx.transaction.hash,
+          failedReceivers: failedOutgoing(dao, tx),
         });
       }
     }
@@ -143,7 +164,7 @@ export async function findApprovals(source: TxSource, dao: string, ids: Set<numb
   return found;
 }
 
-export type DatingReport = { approvalVotes: number; bulkPaidBlocks: number; submissionDates: number; problems: string[] };
+export type DatingReport = { approvalVotes: number; bulkPaidBlocks: number; submissionDates: number; bounced: number; problems: string[] };
 
 /**
  * Sets paidAt on every executed movement: the bulk line's paid block if it has one, else the approving vote.
@@ -153,7 +174,7 @@ export async function datePayments(
   movements: Movement[],
   deps: { dao: string; sinceMs: number; index?: TxSource; archival?: BlockClient },
 ): Promise<{ movements: Movement[]; report: DatingReport }> {
-  const report: DatingReport = { approvalVotes: 0, bulkPaidBlocks: 0, submissionDates: 0, problems: [] };
+  const report: DatingReport = { approvalVotes: 0, bulkPaidBlocks: 0, submissionDates: 0, bounced: 0, problems: [] };
   const executed = movements.filter((m) => m.executed);
 
   let approvals = new Map<number, Approval>();
@@ -189,6 +210,13 @@ export async function datePayments(
     }
     if (approval) {
       report.approvalVotes++;
+      const failedTo = approval.failedReceivers;
+      const sentVia = m.token === 'near' ? m.to : m.via === 'intents_transfer' || m.via === 'intents_withdraw' ? 'intents.near' : m.token;
+      if (m.via !== 'bulk_payment' && (failedTo.includes(m.to) || failedTo.includes(sentVia))) {
+        report.bounced++;
+        const note = 'approved, but the payment failed on chain and the money came back to the treasury';
+        return { ...m, ...approvalFields, executed: false, bounced: true, paidAt: approval.atMs, paidAtBlock: approval.blockHeight, dateSource: 'approval_vote', note: m.note ? `${m.note}; ${note}` : note };
+      }
       return { ...m, ...approvalFields, paidAt: approval.atMs, paidAtBlock: approval.blockHeight, dateSource: 'approval_vote' };
     }
     report.submissionDates++;

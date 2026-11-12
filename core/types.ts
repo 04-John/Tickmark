@@ -77,6 +77,8 @@ export type Movement = {
   dateSource?: DateSource;
   /** Hash of the transaction that approved the proposal and so executed the payment. */
   approvalTx?: string;
+  /** Approved, but the payment's receipt failed on chain and the money came back (Sputnik can still say Approved). */
+  bounced?: boolean;
   /** Why something could not be decoded fully. */
   note?: string;
 };

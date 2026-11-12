@@ -74,7 +74,7 @@ export async function load(dao: string, options: PipelineOptions, deps: Pipeline
     });
     movements = dated.movements;
     const r = dated.report;
-    dating = `${r.approvalVotes} from the approving vote, ${r.bulkPaidBlocks} from the bulk line's paid block, ${r.submissionDates} not found (submission date used)`;
+    dating = `${r.approvalVotes} from the approving vote, ${r.bulkPaidBlocks} from the bulk line's paid block, ${r.submissionDates} not found (submission date used)${r.bounced ? `; ${r.bounced} approved but bounced (not paid)` : ''}`;
     for (const problem of r.problems.slice(0, 3)) (options.warn ?? ((m: string) => console.error(m)))(`  warning: ${problem}`);
   }
   progress('reading prices and the voting policy');

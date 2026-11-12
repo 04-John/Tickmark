@@ -1,7 +1,7 @@
 // Who the treasury paid: one line per payee, with what kind of account it is, its role in the DAO, totals, the
 // accounts its payments were placed in, and the questions about it.
 import type { JournalEntry } from './books.ts';
-import { sameNameAccount, type CategoryId } from './classify.ts';
+import { isSputnikDao, sameNameAccount, type CategoryId } from './classify.ts';
 import type { DaoPolicy } from './dao.ts';
 import { isUnnamed, type Question } from './questions.ts';
 import type { Proposal } from './types.ts';
@@ -34,7 +34,7 @@ const NOT_A_PAYEE: Set<CategoryId> = new Set(['internal', 'swaps', 'protocols'])
 export function payeeKind(dao: string, account: string): PayeeKind {
   if (isUnnamed(account)) return 'unnamed';
   if (sameNameAccount(dao, account)) return 'own_name';
-  if (account.endsWith('.sputnik-dao.near') || account.endsWith('.sputnik-dao.testnet') || account.endsWith('.sputnikv2.testnet')) return 'dao';
+  if (isSputnikDao(account)) return 'dao';
   return 'named';
 }
 
