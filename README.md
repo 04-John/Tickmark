@@ -159,6 +159,21 @@ How it stays private:
 
 Without a key, `--suggest` runs in **practice mode**: nothing is sent anywhere, and the output says it is not verified.
 
+A real run on daocubator, 12 November 2026 (76 seconds, most of it the first secure connection):
+
+```
+• taoist.near → Contractors and services (medium): Identical recurring monthly 'dev' payments alongside
+  godofnfts.near suggest a second contracted developer, though the name itself proves nothing.
+    ask: Is taoist.near a contracted developer receiving the same monthly retainer, and what was the
+         purpose of the unlabeled 420 USDC payment?
+Verified:
+  ✓ z-ai/glm-5.3-flash is listed by NEAR AI as a verifiable TEE model
+  ✓ attestation fetched with a fresh nonce (8a1c3506872136ca…, a0d4104b8150b2be…) and verified; TCB UpToDate; GPU verified
+  ✓ request end-to-end encrypted to the attested model key
+  ✓ reply signed by 5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff (provider_tee); signature checked
+  ✓ nothing stored on a server: Tickmark has none
+```
+
 ## Website
 
 The same code runs in the browser. It reads the public NEAR endpoints directly, so there is no server.
