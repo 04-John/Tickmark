@@ -8,6 +8,7 @@ import { exportBooks } from '../core/exports.ts';
 import { setMaxInFlightPerHost } from '../core/http.ts';
 import { makeBooks, type PipelineDeps } from '../core/pipeline.ts';
 import { PriceBook, type PriceSeries } from '../core/prices.ts';
+import type { Payee } from '../core/payees.ts';
 import type { Question } from '../core/questions.ts';
 import type { BalanceCheck } from '../core/reconcile.ts';
 import { fingerprintOf, firstDifference, type SignedReport } from '../core/report.ts';
@@ -114,6 +115,7 @@ function render(b: Books, network: Network, policy: DaoPolicy | null) {
     spendingPanel(b),
     balancesPanel(b.balances, b),
     questionsPanel(b.questions),
+    payeesPanel(b.payees),
     journalPanel(b.entries, network),
     downloadsPanel(b, network),
     closePanel(report, policy, network),
@@ -240,6 +242,44 @@ const BASIS_BADGE: Record<string, [string, string]> = {
   none: ['none', 'not placed'],
 };
 
+const PAYEE_KIND: Record<Payee['kind'], string> = { named: 'named account', unnamed: 'no name', dao: 'another DAO', own_name: 'the DAO’s own name' };
+
+function payeesPanel(payees: Payee[]) {
+  return el(
+    'section',
+    { class: 'panel' },
+    el('h2', {}, `Payees (${payees.length})`),
+    el('p', {}, 'Every account the treasury paid, largest first. Moves within the treasury and swaps are left out. Roles come from the DAO’s own policy, so council members who were paid are easy to see.'),
+    el(
+      'div',
+      { class: 'scroll' },
+      el(
+        'table',
+        {},
+        el('thead', {}, el('tr', {}, ...['Payee', 'Kind', 'Roles', 'Paid', 'Lines', 'Placed in', 'Voted on own payment', 'Questions'].map((h, i) => el('th', { class: i === 3 || i === 4 || i === 7 ? 'num' : '' }, h)))),
+        el(
+          'tbody',
+          {},
+          payees.map((p) =>
+            el(
+              'tr',
+              {},
+              el('td', { class: 'payee', title: p.account }, shortHex(p.account)),
+              el('td', {}, PAYEE_KIND[p.kind]),
+              el('td', {}, p.roles.join(', ')),
+              el('td', { class: 'num' }, usd(p.cents), p.unpriced ? el('span', { class: 'meta' }, ` +${p.unpriced}`) : null),
+              el('td', { class: 'num' }, String(p.lines)),
+              el('td', { class: 'why' }, p.categories.map((c) => `${CATEGORIES[c.category].name} (${c.lines})`).join(', ')),
+              el('td', {}, p.votedOnOwn.length ? el('span', { class: 'status-gap' }, p.votedOnOwn.map((id) => `#${id}`).join(' ')) : ''),
+              el('td', { class: 'num' }, p.questions ? String(p.questions) : ''),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 function journalPanel(entries: JournalEntry[], network: Network) {
   const used = [...new Set(entries.map((e) => e.category))];
   const select = el('select', { 'aria-label': 'Filter by account' }, el('option', { value: '' }, `All accounts (${entries.length})`), used.map((c) => el('option', { value: c }, `${CATEGORIES[c as CategoryId].code} ${CATEGORIES[c as CategoryId].name} (${entries.filter((e) => e.category === c).length})`)));
@@ -295,6 +335,7 @@ function downloadsPanel(b: Books, network: Network) {
       statement: b.st,
       questions: b.questions,
       balances: { checks: b.balances, openingBlock: b.opening.height, openingDate: b.sinceDate, closingBlock: b.asOf.height },
+      payees: b.payees,
     }),
     { name: 'report.json', content: JSON.stringify(b.report, null, 2) },
   ];

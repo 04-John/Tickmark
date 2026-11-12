@@ -3,7 +3,8 @@
 // the price book (from data/prices) and the Tickmark version.
 import { journal, statement } from './books.ts';
 import { classify } from './classify.ts';
-import { fetchMovements, fetchPolicy } from './dao.ts';
+import { fetchMovements, fetchPolicy, type DaoPolicy } from './dao.ts';
+import { payeeList } from './payees.ts';
 import { datePayments, TxIndex } from './history.ts';
 import type { PriceBook } from './prices.ts';
 import { auditQuestions, sortQuestions } from './questions.ts';
@@ -36,6 +37,8 @@ export type Loaded = {
   valued: ValuedMovement[];
   dating: string;
   proposalPeriodMs?: number;
+  /** The DAO policy at the report block (roles, bond, voting period); null when it could not be read. */
+  policy: DaoPolicy | null;
   pricesThrough: Record<string, string>;
 };
 
@@ -77,7 +80,7 @@ export async function load(dao: string, options: PipelineOptions, deps: Pipeline
   progress('reading prices and the voting policy');
   const policy = await fetchPolicy(rpc, dao).catch(() => null);
   const proposalPeriodMs = policy ? Number(BigInt(policy.proposal_period) / 1_000_000n) : undefined;
-  return { sinceDate, asOf, proposals, valued: await valueMovements(movements, new TokenBook(rpc), prices), dating, proposalPeriodMs, pricesThrough };
+  return { sinceDate, asOf, proposals, valued: await valueMovements(movements, new TokenBook(rpc), prices), dating, proposalPeriodMs, policy, pricesThrough };
 }
 
 /** The opening block for a start date is the same for every DAO; find it once per run. */
@@ -115,6 +118,7 @@ export async function makeBooks(dao: string, options: PipelineOptions, deps: Pip
     ...auditQuestions(classified, loaded.proposals, { proposalPeriodMs: loaded.proposalPeriodMs, nowMs: loaded.asOf.timestampMs }),
     ...balanceQuestions(balances, loaded.sinceDate, asOfDate),
   ]);
+  const payees = payeeList(dao, entries, loaded.proposals, loaded.policy, questions);
   const report = await signReport(
     buildReport({
       tickmark: deps.version,
@@ -126,9 +130,10 @@ export async function makeBooks(dao: string, options: PipelineOptions, deps: Pip
       pricesThrough: loaded.pricesThrough,
       statement: st,
       balances,
+      payees,
       questions,
       journal: entries,
     }),
   );
-  return { ...loaded, entries, st, balances, opening, questions, report };
+  return { ...loaded, entries, st, balances, opening, questions, payees, report };
 }

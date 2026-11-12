@@ -33,6 +33,7 @@ function sampleReport() {
     pricesThrough: { near: '2026-11-10' },
     statement: statement(entries),
     balances: [],
+    payees: [],
     questions: auditQuestions(classified, [fx.nativeTransfer], { nowMs: Date.parse('2026-11-11') }),
     journal: entries,
   });

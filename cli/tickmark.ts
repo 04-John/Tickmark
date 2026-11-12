@@ -114,7 +114,7 @@ async function scan(dao: string, options: Options) {
 }
 
 async function books(dao: string, options: Options) {
-  const { sinceDate, asOf, dating, entries, st, questions, report, balances, opening } = await makeBooks(dao, options);
+  const { sinceDate, asOf, dating, entries, st, questions, report, balances, opening, payees } = await makeBooks(dao, options);
   const money = (cents: number) => usd(cents / 100).padStart(14);
 
   console.log(`${dao} (${options.network}) since ${sinceDate}, as of block ${asOf.height} (${new Date(asOf.timestampMs).toISOString()}): ${entries.length} paid lines`);
@@ -154,6 +154,12 @@ async function books(dao: string, options: Options) {
     console.log(`\n  Largest lines in Suspense:`);
     for (const e of suspense.slice(0, options.lines ? suspense.length : 8)) printEntry(e);
   }
+  const kindLabel = { named: '', unnamed: ' (no name)', dao: ' (DAO)', own_name: " (the DAO's own name)" } as const;
+  console.log(`\n  Payees (${payees.length}), largest first:`);
+  for (const p of payees.slice(0, options.lines ? payees.length : 8)) {
+    const flags = [p.roles.length ? `role: ${p.roles.join(', ')}` : '', p.votedOnOwn.length ? `voted on own payment ${p.votedOnOwn.length}x` : '', p.questions ? `${p.questions} question${p.questions === 1 ? '' : 's'}` : ''].filter(Boolean).join('; ');
+    console.log(`    ${cut(p.account, 30).padEnd(30)} ${(p.cents === null ? 'no price' : usd(p.cents / 100)).padStart(14)}  ${String(p.lines).padStart(3)} lines  ${p.categories.map((c) => c.category).join(', ')}${kindLabel[p.kind]}${flags ? `  [${flags}]` : ''}`);
+  }
   const kinds = new Map<QuestionKind, number>();
   for (const q of questions) kinds.set(q.kind, (kinds.get(q.kind) ?? 0) + 1);
   console.log(`\n  ${questions.length} questions for the treasurer: ${[...kinds].map(([k, n]) => `${k.replace(/_/g, ' ')} ${n}`).join(', ') || 'none'}`);
@@ -181,6 +187,7 @@ async function books(dao: string, options: Options) {
           statement: st,
           questions,
           balances: { checks: balances, openingBlock: opening.height, openingDate: sinceDate, closingBlock: asOf.height },
+          payees,
         },
         { xeroTaxRate: options.xeroTaxRate },
       ),

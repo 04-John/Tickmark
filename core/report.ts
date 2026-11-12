@@ -6,6 +6,7 @@
 // ("close the books"), and `tickmark verify` recomputes it.
 import type { JournalEntry, Statement } from './books.ts';
 import type { Question } from './questions.ts';
+import type { Payee } from './payees.ts';
 import type { BalanceCheck } from './reconcile.ts';
 
 export const REPORT_FORMAT = 'tickmark-report/1';
@@ -28,6 +29,8 @@ export type Report = {
   statement: Statement;
   /** Opening + in − out = closing, per token and place, against the chain. */
   balances: BalanceCheck[];
+  /** Who the treasury paid, with totals, roles and questions. */
+  payees: Payee[];
   questions: Question[];
   journal: JournalEntry[];
 };

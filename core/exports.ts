@@ -11,6 +11,7 @@ import { centsToString, type JournalEntry, type Statement } from './books.ts';
 import { CATEGORIES } from './classify.ts';
 import { decimal, toCsv, type Cell } from './csv.ts';
 import type { Question } from './questions.ts';
+import type { Payee } from './payees.ts';
 import type { BalanceCheck } from './reconcile.ts';
 
 /** Where people can get Tickmark to re-run it. Confirm before submitting (PLAN T6.1). */
@@ -28,6 +29,8 @@ export type BooksInput = {
   questions: Question[];
   /** Balances checked against the chain, with the blocks they were read at. */
   balances?: { checks: BalanceCheck[]; openingBlock: number; openingDate: string; closingBlock: number };
+  /** Who the treasury paid. */
+  payees?: Payee[];
 };
 
 export type ExportOptions = {
@@ -140,6 +143,26 @@ function balancesCsv(b: NonNullable<BooksInput['balances']>): string {
   return toCsv(['Token', 'Token contract', 'Held in', 'Opening', 'Paid out (booked)', 'Moved in from own balances', 'Other money in (derived)', 'Closing', 'Result', 'Opening block', 'Closing block'], rows, { bom: true });
 }
 
+const PAYEE_KIND = { named: 'named account', unnamed: 'no name (hex)', dao: 'another DAO', own_name: "the DAO's own name" } as const;
+
+function payeesCsv(payees: Payee[]): string {
+  const rows: Cell[][] = payees.map((p) => [
+    p.account,
+    PAYEE_KIND[p.kind],
+    p.roles.join(' '),
+    usdCell(p.cents),
+    p.lines,
+    p.unpriced,
+    p.categories.map((c) => `${CATEGORIES[c.category].name} (${c.lines})`).join('; '),
+    p.first,
+    p.last,
+    p.proposals.map((id) => `#${id}`).join(' '),
+    p.votedOnOwn.map((id) => `#${id}`).join(' '),
+    p.questions,
+  ]);
+  return toCsv(['Payee', 'Account kind', 'Roles in the DAO', 'Paid (USD)', 'Lines', 'Lines without a price', 'Placed in', 'First paid', 'Last paid', 'Proposals', 'Voted to approve its own payment in', 'Questions'], rows, { bom: true });
+}
+
 function questionsCsv(input: BooksInput): string {
   const rows: Cell[][] = input.questions.map((q) => [q.kind.replace(/_/g, ' '), q.ask, usdCell(q.cents), q.proposals.map((p) => `#${p}`).join(' '), q.payee ?? '', q.facts.join(' | ')]);
   return toCsv(['Kind', 'Question', 'At stake (USD)', 'Proposals', 'Payee', 'Facts'], rows, { bom: true });
@@ -166,6 +189,11 @@ Files
 - xero-manual-journal-1.csv${xeroFiles > 1 ? ` to -${xeroFiles}.csv` : ''}: Xero > Accounting > Manual journals > Import. Amount is positive for debits and negative for credits; each journal balances to zero. Dates are ${fmt(options.xeroDates)}. Tax rate: "${options.xeroTaxRate}" (use your organization's no-tax rate name if it differs). At most ${options.xeroRowsPerFile} rows per file.
 - monthly-spending.csv: spending by account and month, then what is not explained yet, then moves that are not spending.
 - questions.csv: the questions for the treasurer, largest first within each kind, with the facts behind each.${
+    input.payees
+      ? `
+- payees.csv: every account the treasury paid (moves within the treasury and swaps left out): what kind of account it is, its roles in the DAO, total, accounts its payments were placed in, first and last payment, proposals, the proposals it voted to approve itself, and how many questions are about it.`
+      : ''
+  }${
     input.balances
       ? `
 - balance-check.csv: for each token and place: opening balance (read from the chain at block ${input.balances.openingBlock}, the last block before ${input.balances.openingDate}) - paid out (from these books) + moved in from the treasury's own balances + other money in = closing balance (read at block ${input.balances.closingBlock}). "Other money in" is derived: income, donations or swap proceeds. If it is negative, money left in a way no proposal explains, and questions.csv asks about it.`
@@ -192,6 +220,7 @@ export function exportBooks(input: BooksInput, options: ExportOptions = {}): Exp
     { name: 'monthly-spending.csv', content: spendingCsv(input) },
     { name: 'questions.csv', content: questionsCsv(input) },
     ...(input.balances ? [{ name: 'balance-check.csv', content: balancesCsv(input.balances) }] : []),
+    ...(input.payees ? [{ name: 'payees.csv', content: payeesCsv(input.payees) }] : []),
     { name: 'about-these-files.txt', content: about(input, opts, xero.length) },
   ];
 }
