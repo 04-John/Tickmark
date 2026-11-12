@@ -1,0 +1,21 @@
+Tickmark books for tickmark-demo-toe27k.sputnik-v2.testnet (testnet)
+Payments from 2025-11-13 to 2026-11-12: 5 paid lines, 7 questions for the treasurer.
+
+Where the numbers come from
+- Every line is a payment a DAO proposal made on the NEAR blockchain. "Reference" (TM-<proposal>-<line>) is unique; "Proposal" is the DAO's proposal number.
+- Date paid: the block of the vote that approved the proposal (the payment runs in that transaction), or for Trezu bulk payments the block in which the line was paid. "Date from" says which. The time zone is UTC.
+- Amount (USD): quantity x the daily USD price for that day (CoinGecko daily price). Dollar stablecoins are valued at $1. Tokens Tickmark cannot price by their exact contract have no USD amount (0 lines here); they are in journal.csv but not in the QuickBooks or Xero files, and need a price before import.
+- Account: where each payment was placed, and "Why". "Placed by" says whether that came from chain facts, words in the proposal, or earlier payments to the same payee. Suspense (1999) holds what nothing explains yet; questions.csv asks about each.
+- Moves that are not spending (swaps, wrapping NEAR, staking, money moved between the treasury's own balances) are booked between asset accounts and are not in the spending totals.
+
+Files
+- journal.csv: one row per paid line, everything above, with a link to the approving transaction on nearblocks.io.
+- chart-of-accounts.csv: the accounts the journals use. Create them first. In QuickBooks, "Digital assets: NEAR" means parent account "Digital assets" with sub-account "NEAR".
+- quickbooks-journal.csv: QuickBooks Online > Settings > Import data > Journal entries. Turn account numbers off first, as QuickBooks asks. Dates are MM/DD/YYYY. Each journal has two lines (debit and credit) that balance.
+- xero-manual-journal-1.csv: Xero > Accounting > Manual journals > Import. Amount is positive for debits and negative for credits; each journal balances to zero. Dates are DD/MM/YYYY. Tax rate: "Tax Exempt" (use your organization's no-tax rate name if it differs). At most 300 rows per file.
+- monthly-spending.csv: spending by account and month, then what is not explained yet, then moves that are not spending.
+- questions.csv: the questions for the treasurer, largest first within each kind, with the facts behind each.
+- payees.csv: every account the treasury paid (moves within the treasury and swaps left out): what kind of account it is, its roles in the DAO, total, accounts its payments were placed in, first and last payment, proposals, the proposals it voted to approve itself, and how many questions are about it.
+- balance-check.csv: for each token and place: opening balance (read from the chain at block 222711666, the last block before 2025-11-13) - paid out (from these books) + moved in from the treasury's own balances + other money in = closing balance (read at block 277368760). "Other money in" is derived: income, donations or swap proceeds. If it is negative, money left in a way no proposal explains, and questions.csv asks about it.
+
+Check any line yourself: open the approval transaction link, or run Tickmark again (https://github.com/04-John/tickmark).

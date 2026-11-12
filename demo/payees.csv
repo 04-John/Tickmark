@@ -1,0 +1,5 @@
+﻿Payee,Account kind,Roles in the DAO,Paid (USD),Lines,Lines without a price,Placed in,First paid,Last paid,Proposals,Voted to approve its own payment in,Questions
+studio.tickmark-demo-toe27k.testnet,named account,,2.16,2,0,Contractors and services (2),2026-11-12,2026-11-12,#0 #1,,2
+designer.tickmark-demo-toe27k.testnet,named account,,0.90,1,0,Contractors and services (1),2026-11-12,2026-11-12,#2,,1
+120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902,no name (hex),,0.72,1,0,Suspense (payments to be explained) (1),2026-11-12,2026-11-12,#3,,2
+bob.tickmark-demo-toe27k.testnet,named account,council,0.54,1,0,Contributor pay (1),2026-11-12,2026-11-12,#4,#4,1

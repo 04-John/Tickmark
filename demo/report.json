@@ -1,0 +1,463 @@
+{
+  "format": "tickmark-report/1",
+  "tickmark": "0.1.0",
+  "dao": "tickmark-demo-toe27k.sputnik-v2.testnet",
+  "network": "testnet",
+  "since": "2025-11-13",
+  "asOf": {
+    "block": 277368760,
+    "time": "2026-11-12T13:25:47.972Z"
+  },
+  "opening": {
+    "block": 222711666,
+    "time": "2025-11-12T23:59:59.682Z"
+  },
+  "pricesThrough": {
+    "near": "2026-11-11",
+    "eth": "2026-11-11",
+    "btc": "2026-11-11",
+    "zec": "2026-11-11",
+    "sol": "2026-11-11",
+    "aurora": "2026-11-11"
+  },
+  "statement": {
+    "months": [
+      "2026-11"
+    ],
+    "rows": [
+      {
+        "category": "contractors",
+        "code": "6020",
+        "name": "Contractors and services",
+        "section": "expense",
+        "byMonth": [
+          306
+        ],
+        "totalCents": 306,
+        "count": 3,
+        "unpriced": 0
+      },
+      {
+        "category": "payroll",
+        "code": "6010",
+        "name": "Contributor pay",
+        "section": "expense",
+        "byMonth": [
+          54
+        ],
+        "totalCents": 54,
+        "count": 1,
+        "unpriced": 0
+      },
+      {
+        "category": "suspense",
+        "code": "1999",
+        "name": "Suspense (payments to be explained)",
+        "section": "suspense",
+        "byMonth": [
+          72
+        ],
+        "totalCents": 72,
+        "count": 1,
+        "unpriced": 0
+      }
+    ],
+    "spendingCents": 360,
+    "suspenseCents": 72
+  },
+  "balances": [
+    {
+      "token": "near",
+      "symbol": "NEAR",
+      "location": "wallet",
+      "opening": "0",
+      "bookedOut": "1.2",
+      "movedIn": "0",
+      "closing": "6.81",
+      "otherIn": "8.01",
+      "status": "ties"
+    }
+  ],
+  "payees": [
+    {
+      "account": "studio.tickmark-demo-toe27k.testnet",
+      "kind": "named",
+      "roles": [],
+      "lines": 2,
+      "proposals": [
+        0,
+        1
+      ],
+      "cents": 216,
+      "unpriced": 0,
+      "categories": [
+        {
+          "category": "contractors",
+          "lines": 2
+        }
+      ],
+      "first": "2026-11-12",
+      "last": "2026-11-12",
+      "votedOnOwn": [],
+      "questions": 2
+    },
+    {
+      "account": "designer.tickmark-demo-toe27k.testnet",
+      "kind": "named",
+      "roles": [],
+      "lines": 1,
+      "proposals": [
+        2
+      ],
+      "cents": 90,
+      "unpriced": 0,
+      "categories": [
+        {
+          "category": "contractors",
+          "lines": 1
+        }
+      ],
+      "first": "2026-11-12",
+      "last": "2026-11-12",
+      "votedOnOwn": [],
+      "questions": 1
+    },
+    {
+      "account": "120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902",
+      "kind": "unnamed",
+      "roles": [],
+      "lines": 1,
+      "proposals": [
+        3
+      ],
+      "cents": 72,
+      "unpriced": 0,
+      "categories": [
+        {
+          "category": "suspense",
+          "lines": 1
+        }
+      ],
+      "first": "2026-11-12",
+      "last": "2026-11-12",
+      "votedOnOwn": [],
+      "questions": 2
+    },
+    {
+      "account": "bob.tickmark-demo-toe27k.testnet",
+      "kind": "named",
+      "roles": [
+        "council"
+      ],
+      "lines": 1,
+      "proposals": [
+        4
+      ],
+      "cents": 54,
+      "unpriced": 0,
+      "categories": [
+        {
+          "category": "payroll",
+          "lines": 1
+        }
+      ],
+      "first": "2026-11-12",
+      "last": "2026-11-12",
+      "votedOnOwn": [
+        4
+      ],
+      "questions": 1
+    }
+  ],
+  "questions": [
+    {
+      "id": "possible_duplicate:0,1",
+      "kind": "possible_duplicate",
+      "ask": "Was invoice 41 paid twice? #0 and #1 each sent 0.3 NEAR to studio.tickmark-demo-toe27k.testnet, on the same day.",
+      "facts": [
+        "#0 paid 0.3 NEAR on 2026-11-12: Website design, invoice 41 — Studio invoice 41 for the website redesign, 0.3 NEAR",
+        "#1 paid 0.3 NEAR on 2026-11-12: Website design, invoice 41"
+      ],
+      "proposals": [
+        0,
+        1
+      ],
+      "payee": "studio.tickmark-demo-toe27k.testnet",
+      "cents": 108
+    },
+    {
+      "id": "memo_amount_mismatch:2:near",
+      "kind": "memo_amount_mismatch",
+      "ask": "#2 says 0.5 NEAR, but sent 0.25 NEAR. Which is right?",
+      "facts": [
+        "description: Logo design — Final logo files, 0.5 NEAR as agreed",
+        "0.25 NEAR to designer.tickmark-demo-toe27k.testnet on 2026-11-12"
+      ],
+      "proposals": [
+        2
+      ],
+      "payee": "designer.tickmark-demo-toe27k.testnet",
+      "cents": 90
+    },
+    {
+      "id": "possibly_still_owed:6:0",
+      "kind": "possibly_still_owed",
+      "ask": "Is studio.tickmark-demo-toe27k.testnet still owed 0.2 NEAR? #6 has been open since 2026-11-12, past the voting period, and no later payment matches.",
+      "facts": [
+        "#6 proposed 2026-11-12 by tickmark-demo-toe27k.testnet: Hosting, invoice 43",
+        "status: InProgress",
+        "payee: studio.tickmark-demo-toe27k.testnet"
+      ],
+      "proposals": [
+        6
+      ],
+      "payee": "studio.tickmark-demo-toe27k.testnet",
+      "cents": 72
+    },
+    {
+      "id": "possibly_still_owed:5:0",
+      "kind": "possibly_still_owed",
+      "ask": "Is ghost.tickmark-demo-toe27k.testnet still owed 0.1 NEAR? #5 was approved, but the payment failed on chain and the money came back, and no later payment matches.",
+      "facts": [
+        "#5 proposed 2026-11-12 by tickmark-demo-toe27k.testnet: Translation services, invoice 7",
+        "status: Approved",
+        "payee: ghost.tickmark-demo-toe27k.testnet"
+      ],
+      "proposals": [
+        5
+      ],
+      "payee": "ghost.tickmark-demo-toe27k.testnet",
+      "cents": 36
+    },
+    {
+      "id": "payee_voted:bob.tickmark-demo-toe27k.testnet",
+      "kind": "payee_voted",
+      "ask": "bob.tickmark-demo-toe27k.testnet voted to approve #4, which paid them 0.15 NEAR. Did someone other than the payee review it?",
+      "facts": [
+        "#4 votes: bob.tickmark-demo-toe27k.testnet Approve"
+      ],
+      "proposals": [
+        4
+      ],
+      "payee": "bob.tickmark-demo-toe27k.testnet",
+      "cents": 54
+    },
+    {
+      "id": "unnamed_payee:120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902",
+      "kind": "unnamed_payee",
+      "ask": "Who is 120bd3f9…e902? It received $1 in 1 payment, and an account without a name can’t be matched to a vendor or invoice.",
+      "facts": [
+        "full account: 120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902",
+        "#3, 2026-11-12 to 2026-11-12"
+      ],
+      "proposals": [
+        3
+      ],
+      "payee": "120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902",
+      "cents": 72
+    },
+    {
+      "id": "unexplained:120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902",
+      "kind": "unexplained",
+      "ask": "What was the payment to 120bd3f9…e902 for? $1 in 1 payment.",
+      "facts": [
+        "#3 2026-11-12 0.2 NEAR: the proposal has no description"
+      ],
+      "proposals": [
+        3
+      ],
+      "payee": "120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902",
+      "cents": 72
+    }
+  ],
+  "journal": [
+    {
+      "ref": "TM-0-0",
+      "date": "2026-11-12",
+      "dateSource": "approval_vote",
+      "dao": "tickmark-demo-toe27k.sputnik-v2.testnet",
+      "proposalId": 0,
+      "payee": "studio.tickmark-demo-toe27k.testnet",
+      "onChainTo": "studio.tickmark-demo-toe27k.testnet",
+      "category": "contractors",
+      "section": "expense",
+      "token": "near",
+      "symbol": "NEAR",
+      "quantity": "0.3",
+      "unitPrice": 3.584136,
+      "priceDate": "2026-11-11",
+      "cents": 108,
+      "memo": "Website design, invoice 41 — Studio invoice 41 for the website redesign, 0.3 NEAR",
+      "rule": "memo_words",
+      "basis": "memo",
+      "evidence": "the proposal says “design” → Contractors and services",
+      "approvalTx": "WE6nKKbJY99UqMMHh6XywhZ8RH5W3dxYxw1eGpjsaNd",
+      "lines": [
+        {
+          "code": "6020",
+          "account": "Contractors and services",
+          "debitCents": 108,
+          "creditCents": 0
+        },
+        {
+          "code": "1110",
+          "account": "Digital assets: NEAR",
+          "debitCents": 0,
+          "creditCents": 108
+        }
+      ]
+    },
+    {
+      "ref": "TM-1-0",
+      "date": "2026-11-12",
+      "dateSource": "approval_vote",
+      "dao": "tickmark-demo-toe27k.sputnik-v2.testnet",
+      "proposalId": 1,
+      "payee": "studio.tickmark-demo-toe27k.testnet",
+      "onChainTo": "studio.tickmark-demo-toe27k.testnet",
+      "category": "contractors",
+      "section": "expense",
+      "token": "near",
+      "symbol": "NEAR",
+      "quantity": "0.3",
+      "unitPrice": 3.584136,
+      "priceDate": "2026-11-11",
+      "cents": 108,
+      "memo": "Website design, invoice 41",
+      "rule": "memo_words",
+      "basis": "memo",
+      "evidence": "the proposal says “design” → Contractors and services",
+      "approvalTx": "QNaYeEVxSqt4e9M6YGiiFmBCvnH9Vsb8LMDeoezy68J",
+      "lines": [
+        {
+          "code": "6020",
+          "account": "Contractors and services",
+          "debitCents": 108,
+          "creditCents": 0
+        },
+        {
+          "code": "1110",
+          "account": "Digital assets: NEAR",
+          "debitCents": 0,
+          "creditCents": 108
+        }
+      ]
+    },
+    {
+      "ref": "TM-2-0",
+      "date": "2026-11-12",
+      "dateSource": "approval_vote",
+      "dao": "tickmark-demo-toe27k.sputnik-v2.testnet",
+      "proposalId": 2,
+      "payee": "designer.tickmark-demo-toe27k.testnet",
+      "onChainTo": "designer.tickmark-demo-toe27k.testnet",
+      "category": "contractors",
+      "section": "expense",
+      "token": "near",
+      "symbol": "NEAR",
+      "quantity": "0.25",
+      "unitPrice": 3.584136,
+      "priceDate": "2026-11-11",
+      "cents": 90,
+      "memo": "Logo design — Final logo files, 0.5 NEAR as agreed",
+      "rule": "memo_words",
+      "basis": "memo",
+      "evidence": "the proposal says “design” → Contractors and services",
+      "approvalTx": "HzUhB43ADcazwd9fjF44fDPccn7xzjyw8amhBxhCat6e",
+      "lines": [
+        {
+          "code": "6020",
+          "account": "Contractors and services",
+          "debitCents": 90,
+          "creditCents": 0
+        },
+        {
+          "code": "1110",
+          "account": "Digital assets: NEAR",
+          "debitCents": 0,
+          "creditCents": 90
+        }
+      ]
+    },
+    {
+      "ref": "TM-3-0",
+      "date": "2026-11-12",
+      "dateSource": "approval_vote",
+      "dao": "tickmark-demo-toe27k.sputnik-v2.testnet",
+      "proposalId": 3,
+      "payee": "120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902",
+      "onChainTo": "120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902",
+      "category": "suspense",
+      "section": "suspense",
+      "token": "near",
+      "symbol": "NEAR",
+      "quantity": "0.2",
+      "unitPrice": 3.584136,
+      "priceDate": "2026-11-11",
+      "cents": 72,
+      "memo": "",
+      "rule": "unexplained",
+      "basis": "none",
+      "evidence": "the proposal has no description",
+      "approvalTx": "GeqT62ti5tE8yESxKWJtW1XrSSjD2njK5pQedtPkCTXA",
+      "lines": [
+        {
+          "code": "1999",
+          "account": "Suspense (payments to be explained)",
+          "debitCents": 72,
+          "creditCents": 0
+        },
+        {
+          "code": "1110",
+          "account": "Digital assets: NEAR",
+          "debitCents": 0,
+          "creditCents": 72
+        }
+      ]
+    },
+    {
+      "ref": "TM-4-0",
+      "date": "2026-11-12",
+      "dateSource": "approval_vote",
+      "dao": "tickmark-demo-toe27k.sputnik-v2.testnet",
+      "proposalId": 4,
+      "payee": "bob.tickmark-demo-toe27k.testnet",
+      "onChainTo": "bob.tickmark-demo-toe27k.testnet",
+      "category": "payroll",
+      "section": "expense",
+      "token": "near",
+      "symbol": "NEAR",
+      "quantity": "0.15",
+      "unitPrice": 3.584136,
+      "priceDate": "2026-11-11",
+      "cents": 54,
+      "memo": "Honorarium, November",
+      "rule": "memo_words",
+      "basis": "memo",
+      "evidence": "the proposal says “Honorarium” → Contributor pay",
+      "approvalTx": "GUujgt7GLXwK8wPucc96qwAZPfsankhwKirVQ7AQDQH1",
+      "lines": [
+        {
+          "code": "6010",
+          "account": "Contributor pay",
+          "debitCents": 54,
+          "creditCents": 0
+        },
+        {
+          "code": "1110",
+          "account": "Digital assets: NEAR",
+          "debitCents": 0,
+          "creditCents": 54
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "lines": 5,
+    "spendingCents": 360,
+    "suspenseCents": 72,
+    "unpricedLines": 0,
+    "questions": 7
+  },
+  "fingerprint": "e016d9ad2f5f208e7dbe79ada0de2bc2f14f02d8ba306a3dd4553bb83f8aec23"
+}

@@ -51,6 +51,27 @@ node cli/tickmark.ts verify out/daocubator/report.json
 
 **See:** `VERIFIED: the report matches the chain.` Tickmark rebuilds the books from an archival node at the block the report was made at, and gets the same fingerprint. Edit any value in report.json and it says where: `first difference at journal[0].payee`.
 
+### The demo treasury (testnet, problems planted on purpose)
+
+`tickmark-demo-toe27k.sputnik-v2.testnet` is our own testnet DAO, built by [scripts/demo-testnet.ts](scripts/demo-testnet.ts) with every account fictional and test NEAR only. It has seven planted problems:
+- the same invoice paid twice;
+- a description saying 0.5 NEAR for a 0.25 NEAR payment;
+- an undescribed payment to an account with no name;
+- a council member approving their own honorarium;
+- a payment to an account that doesn't exist, which Sputnik still marks Approved;
+- a request nobody answered;
+- plus one clean invoice.
+
+Its books are committed in [demo/](demo/), and its council approved them by vote. Test NEAR has no value; it is priced like NEAR so the dollar columns are filled.
+
+**Do:**
+
+```sh
+node cli/tickmark.ts verify demo/report.json
+```
+
+**See:** `closed by vote: proposal #7 is Approved` and `VERIFIED: the report matches the chain.` The books match the chain, and the council approved these exact books. [demo/questions.csv](demo/questions.csv) lists the questions the seven problems raise, starting with `Was invoice 41 paid twice?` and `#5 was approved, but the payment failed on chain and the money came back`.
+
 Other commands:
 
 | Do | See |

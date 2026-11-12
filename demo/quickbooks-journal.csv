@@ -1,0 +1,11 @@
+Journal No,Journal Date,Account Name,Debits,Credits,Description
+TM-0-0,11/12/2026,Contractors and services,1.08,,"#0 0.3 NEAR @ $3.584136 (2026-11-11) to studio.tickmark-demo-toe27k.testnet - Website design, invoice 41 — Studio invoice 41 for the website redesign, 0.3 NEAR"
+TM-0-0,11/12/2026,Digital assets: NEAR,,1.08,"#0 0.3 NEAR @ $3.584136 (2026-11-11) to studio.tickmark-demo-toe27k.testnet - Website design, invoice 41 — Studio invoice 41 for the website redesign, 0.3 NEAR"
+TM-1-0,11/12/2026,Contractors and services,1.08,,"#1 0.3 NEAR @ $3.584136 (2026-11-11) to studio.tickmark-demo-toe27k.testnet - Website design, invoice 41"
+TM-1-0,11/12/2026,Digital assets: NEAR,,1.08,"#1 0.3 NEAR @ $3.584136 (2026-11-11) to studio.tickmark-demo-toe27k.testnet - Website design, invoice 41"
+TM-2-0,11/12/2026,Contractors and services,0.90,,"#2 0.25 NEAR @ $3.584136 (2026-11-11) to designer.tickmark-demo-toe27k.testnet - Logo design — Final logo files, 0.5 NEAR as agreed"
+TM-2-0,11/12/2026,Digital assets: NEAR,,0.90,"#2 0.25 NEAR @ $3.584136 (2026-11-11) to designer.tickmark-demo-toe27k.testnet - Logo design — Final logo files, 0.5 NEAR as agreed"
+TM-3-0,11/12/2026,Suspense (payments to be explained),0.72,,#3 0.2 NEAR @ $3.584136 (2026-11-11) to 120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902
+TM-3-0,11/12/2026,Digital assets: NEAR,,0.72,#3 0.2 NEAR @ $3.584136 (2026-11-11) to 120bd3f9cd2f4e4a9e686697470c4c4537b6432ca5da9ced59180972bb50e902
+TM-4-0,11/12/2026,Contributor pay,0.54,,"#4 0.15 NEAR @ $3.584136 (2026-11-11) to bob.tickmark-demo-toe27k.testnet - Honorarium, November"
+TM-4-0,11/12/2026,Digital assets: NEAR,,0.54,"#4 0.15 NEAR @ $3.584136 (2026-11-11) to bob.tickmark-demo-toe27k.testnet - Honorarium, November"
