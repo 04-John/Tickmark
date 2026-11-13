@@ -9,7 +9,7 @@ import { usd } from '../lib/format.ts';
 import { Chevron, Group, Icon, Logo, Mark, Row, Segmented, Sk, Stat } from '../ui.tsx';
 
 const EXAMPLES: [string, string, string][] = [
-  ['daocubator.sputnik-dao.near', 'daocubator', 'about 40 s'],
+  ['daocubator.sputnik-dao.near', 'daocubator', ''],
   ['n1-treasury.sputnik-dao.near', 'Near One treasury', ''],
   ['braindao-treasury.sputnik-dao.near', 'BrainDAO', ''],
 ];
@@ -138,7 +138,7 @@ function Headline({ m }: { m: Measure | null }) {
       </div>
       <div className="card">
         <span className="big num">{m.totals.daosWithPayments}</span>
-        <span className="secondary">DAOs measured from the public chain</span>
+        <span className="secondary">DAOs that paid out, measured from the public chain</span>
       </div>
       <div className="card ink">
         <span className="big num pencil-on-ink">{share}%</span>

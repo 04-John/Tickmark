@@ -183,16 +183,7 @@ export function Close() {
             {may.allowed ? `✓ ${account} may submit it (role: ${may.roles.join(', ')}).` : `${account} is not in a role that may add vote proposals here. A council member should submit it.`}
           </p>
         )}
-        <div className="choices">
-          <div className="choice disabled" aria-disabled="true">
-            <b>Wallet</b>
-            <span className="secondary small">NEAR Wallet Selector, coming next. It will show this same text and bond before you approve.</span>
-          </div>
-          <div className="choice on">
-            <b>near CLI</b>
-            <span className="secondary small">Copy one command and run it in your terminal.</span>
-          </div>
-        </div>
+        <p className="secondary small">Copy this one command and run it with near CLI in your terminal. It signs with your own key, after showing you the call.</p>
         <pre className="cmd">{command}</pre>
         <button type="button" className="btn btn-primary" onClick={copy}>
           <Icon name="copy" size={16} /> {copied ? 'Copied' : 'Copy command'}
