@@ -4,7 +4,7 @@ Books and audit questions for any NEAR treasury, read straight from the chain.
 
 Point Tickmark at a Sputnik DAO or Trezu treasury. It lists every payment the treasury made, dates each one by the vote that paid it, values it in US dollars on that day, and places it in a chart of accounts with the reason why. It checks the balances against the chain and lists the questions an auditor would ask the treasurer. It also writes files that QuickBooks, Xero or a spreadsheet can open. Built at NEAR HACKATHON (November 2026).
 
-> **Status: work in progress (day 1 of 4).** Everything under [Try it](#try-it) works today. Sections marked *(building)* are planned and not done yet. This note goes away when they are.
+**Live:** https://04-john.github.io/Tickmark/ opens the demo treasury's books at once, and builds any treasury in your browser.
 
 ## Why
 
