@@ -1021,8 +1021,9 @@ button.row:hover {
   background: var(--fill-2);
 }
 .equation span {
-  flex: 1;
-  min-width: 70px;
+  /* Never narrower than its number: long amounts (8,636.14, 631.7331) used to run under the − and + signs. */
+  flex: 1 1 auto;
+  min-width: max-content;
   display: flex;
   flex-direction: column;
 }

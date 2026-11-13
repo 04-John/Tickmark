@@ -8,3 +8,5 @@ out/
 *.pem
 PLAN.md
 *.local.*
+*.patch
+*.bundle
