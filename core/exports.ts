@@ -15,7 +15,7 @@ import type { Payee } from './payees.ts';
 import type { BalanceCheck } from './reconcile.ts';
 
 /** Where people can get Tickmark to re-run it. Confirm before submitting (PLAN T6.1). */
-export const REPO_URL = 'https://github.com/04-John/tickmark';
+export const REPO_URL = 'https://github.com/04-John/Tickmark';
 
 export type ExportFile = { name: string; content: string };
 

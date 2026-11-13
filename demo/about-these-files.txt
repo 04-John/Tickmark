@@ -18,4 +18,4 @@ Files
 - payees.csv: every account the treasury paid (moves within the treasury and swaps left out): what kind of account it is, its roles in the DAO, total, accounts its payments were placed in, first and last payment, proposals, the proposals it voted to approve itself, and how many questions are about it.
 - balance-check.csv: for each token and place: opening balance (read from the chain at block 222711666, the last block before 2025-11-13) - paid out (from these books) + moved in from the treasury's own balances + other money in = closing balance (read at block 277368760). "Other money in" is derived: income, donations or swap proceeds. If it is negative, money left in a way no proposal explains, and questions.csv asks about it.
 
-Check any line yourself: open the approval transaction link, or run Tickmark again (https://github.com/04-John/tickmark).
+Check any line yourself: open the approval transaction link, or run Tickmark again (https://github.com/04-John/Tickmark).

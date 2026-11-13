@@ -214,7 +214,7 @@ Open `http://localhost:5180/?dao=daocubator.sputnik-dao.near`.
 - the close-the-books proposal, with a check that your account may submit it;
 - a "Check a report" box that rebuilds any `report.json` from the chain and shows the vote that approved it.
 
-Published at https://04-john.github.io/tickmark/ by [.github/workflows/pages.yml](.github/workflows/pages.yml). On every push, that workflow runs `npm run check` and builds the site.
+Published at https://04-john.github.io/Tickmark/ by [.github/workflows/pages.yml](.github/workflows/pages.yml). On every push, that workflow runs `npm run check` and builds the site.
 
 ## What Tickmark reads
 
