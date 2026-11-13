@@ -1,5 +1,6 @@
 // Small hooks: the hash route, a media query, a ticking clock, and answers kept in this browser.
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { flushSync } from 'react-dom';
 
 // ---------------------------------------------------------------- route: #/questions/<id>
 
@@ -10,12 +11,31 @@ function readRoute(): Route {
   return { page: parts[0] ?? '', id: parts[1] ? decodeURIComponent(parts.slice(1).join('/')) : undefined };
 }
 
+/** Which way a move goes: deeper (forward), shallower (back), or across. Phones slide; the web lifts and fades. */
+function direction(from: Route, to: Route): 'forward' | 'back' | 'across' {
+  if (from.page === to.page) return to.id && !from.id ? 'forward' : !to.id && from.id ? 'back' : 'across';
+  if (from.page === '' || (to.id && !from.id)) return 'forward';
+  if (to.page === '') return 'back';
+  return 'across';
+}
+
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 export function useRoute(): Route {
   const [route, setRoute] = useState(readRoute);
   useEffect(() => {
+    let current = readRoute();
     const on = () => {
-      setRoute(readRoute());
-      window.scrollTo(0, 0);
+      const next = readRoute();
+      const apply = () => {
+        setRoute(next);
+        window.scrollTo(0, 0);
+      };
+      document.documentElement.dataset.nav = direction(current, next);
+      current = next;
+      // View Transitions animate between the old and new page; browsers without them just swap.
+      if (document.startViewTransition && !reducedMotion()) document.startViewTransition(() => flushSync(apply));
+      else apply();
     };
     window.addEventListener('hashchange', on);
     return () => window.removeEventListener('hashchange', on);

@@ -150,3 +150,72 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
     </div>
   );
 }
+
+// ---------------------------------------------------------------- motion
+
+const MORPH_ICONS = {
+  send: 'M22 2 11 13M22 2l-7 20-4-9-9-4z',
+  pencil: 'M4 20l4-1 10.5-10.5a2.1 2.1 0 0 0-3-3L5 16zM14 7l3 3',
+  tick: 'M5 12.5l4.5 4.5L19 7',
+  arrow: 'M5 12h14M13 6l6 6-6 6',
+};
+
+/**
+ * The main action of a screen. On hover (or keyboard focus) its words change to what it will do here and now
+ * ("Review questions" → "Explain $0.72") and its icon loops: the tick draws itself, the pencil writes, the arrow sends.
+ * Both labels share one grid cell, so the button never changes width.
+ */
+export function MorphButton({ label, hover, icon, href, onClick, tone = 'primary', size }: { label: string; hover: string; icon: keyof typeof MORPH_ICONS; href?: string; onClick?: () => void; tone?: 'primary' | 'ok' | 'gray'; size?: 'sm' | 'lg' }) {
+  const body = (
+    <>
+      <span className={`morph-icon m-${icon}`} aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d={MORPH_ICONS[icon]} pathLength={1} />
+        </svg>
+      </span>
+      <span className="morph-labels">
+        <span className="m-a">{label}</span>
+        <span className="m-b" aria-hidden="true">
+          {hover}
+        </span>
+      </span>
+    </>
+  );
+  const cls = `btn btn-${tone} morph ${size ? `btn-${size}` : ''}`;
+  return href ? (
+    <a className={cls} href={href} title={hover}>
+      {body}
+    </a>
+  ) : (
+    <button type="button" className={cls} onClick={onClick} title={hover}>
+      {body}
+    </button>
+  );
+}
+
+/** A disclosure row: a one-line summary that opens smoothly into its content. */
+export function Disclosure({ title, summary, children, defaultOpen = false }: { title: string; summary?: ReactNode; children: ReactNode; defaultOpen?: boolean }) {
+  return (
+    <details className="disclosure" open={defaultOpen}>
+      <summary>
+        <svg className="disc-chev" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+          <path d="M3 1.5 6.5 5 3 8.5" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <b>{title}</b>
+        {summary && <span className="disc-summary">{summary}</span>}
+      </summary>
+      <div className="disc-body">{children}</div>
+    </details>
+  );
+}
+
+/** A round checkbox whose tick draws itself when checked. */
+export function Check({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
+  return (
+    <button type="button" role="checkbox" aria-checked={checked} aria-label={label} className={`check ${checked ? 'on' : ''}`} onClick={onChange}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M5 12.5l4.5 4.5L19 7" pathLength={1} />
+      </svg>
+    </button>
+  );
+}

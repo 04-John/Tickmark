@@ -4,7 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import type { SignedReport } from '../../core/report.ts';
 import { buildBooks, demoReport, type RunRequest } from './lib/data.ts';
 import { go, href, useAnswers, usePhone, useRoute } from './lib/hooks.ts';
-import { Icon, Mark, NetworkPill } from './ui.tsx';
+import { Icon, Mark, MorphButton, NetworkPill } from './ui.tsx';
+import { Palette, SearchButton, usePaletteShortcut } from './palette.tsx';
 import { Home } from './pages/home.tsx';
 import { Overview, LoadingBooks } from './pages/overview.tsx';
 import { Questions } from './pages/questions.tsx';
@@ -96,12 +97,30 @@ function BooksProvider({ children }: { children: ReactNode }) {
 
 // ---------------------------------------------------------------- shells
 
-const NAV: [string, string, string][] = [
-  ['books', 'Overview', 'overview'],
-  ['questions', 'Questions', 'questions'],
-  ['journal', 'Journal', 'journal'],
-  ['payees', 'Payees', 'payees'],
-  ['downloads', 'Downloads', 'downloads'],
+/** The source list, grouped by relationship: the books, who and what they hand on, and approving them. */
+const NAV: [string, [string, string, string][]][] = [
+  [
+    'Books',
+    [
+      ['books', 'Overview', 'overview'],
+      ['questions', 'Questions', 'questions'],
+      ['journal', 'Journal', 'journal'],
+    ],
+  ],
+  [
+    'Hand on',
+    [
+      ['payees', 'Payees', 'payees'],
+      ['downloads', 'Downloads', 'downloads'],
+    ],
+  ],
+  [
+    'Approve',
+    [
+      ['close', 'Close the books', 'close'],
+      ['verify', 'Check a report', 'verify'],
+    ],
+  ],
 ];
 
 function Sidebar({ page }: { page: string }) {
@@ -118,23 +137,19 @@ function Sidebar({ page }: { page: string }) {
   };
   return (
     <nav className="side" aria-label="Books">
-      <span className="side-head">Books</span>
-      {NAV.map(([p, label, icon]) => (
-        <a key={p} href={href(p)} className={page === p ? 'on' : ''} aria-current={page === p ? 'page' : undefined}>
-          <Icon name={icon} className={p === 'questions' && open ? 'pencil' : ''} />
-          <span>{label}</span>
-          {count(p)}
-        </a>
+      {NAV.map(([head, items]) => (
+        <div key={head} className="side-group">
+          <span className="side-head">{head}</span>
+          {items.map(([p, label, icon]) => (
+            <a key={p} href={href(p)} className={page === p ? 'on' : ''} aria-current={page === p ? 'page' : undefined}>
+              <Icon name={icon} className={p === 'questions' && open ? 'pencil' : ''} />
+              <span>{label}</span>
+              {count(p)}
+            </a>
+          ))}
+        </div>
       ))}
-      <span className="side-head">Approve</span>
-      <a href={href('close')} className={page === 'close' ? 'on' : ''}>
-        <Icon name="close" />
-        <span>Close the books</span>
-      </a>
-      <a href={href('verify')} className={page === 'verify' ? 'on' : ''}>
-        <Icon name="verify" />
-        <span>Check a report</span>
-      </a>
+      <span className="spacer" />
       {report && (
         <div className="side-card">
           <b>Signed report</b>
@@ -164,9 +179,8 @@ function Toolbar() {
       {dao && <NetworkPill network={network} />}
       {books.source === 'demo' && books.status === 'ready' && <span className="faint hide-sm">Demo treasury</span>}
       <span className="spacer" />
-      <a className="btn btn-primary btn-sm" href={href('close')}>
-        Close the books
-      </a>
+      <SearchButton />
+      <MorphButton href={href('close')} label="Close the books" hover="Put it to a vote" icon="tick" size="sm" />
     </header>
   );
 }
@@ -309,9 +323,11 @@ function Screen() {
 }
 
 export function App() {
+  usePaletteShortcut();
   return (
     <BooksProvider>
       <Screen />
+      <Palette />
     </BooksProvider>
   );
 }

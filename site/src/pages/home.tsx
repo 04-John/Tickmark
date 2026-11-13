@@ -6,7 +6,7 @@ import { useBooks } from '../app.tsx';
 import { demoReport, measure, priceRange, type Measure } from '../lib/data.ts';
 import { go, href, usePhone } from '../lib/hooks.ts';
 import { usd } from '../lib/format.ts';
-import { Chevron, Group, Icon, Logo, Mark, Row, Segmented, Sk, Stat } from '../ui.tsx';
+import { Chevron, Group, Icon, Logo, Mark, MorphButton, Row, Segmented, Sk, Stat } from '../ui.tsx';
 
 const EXAMPLES: [string, string, string][] = [
   ['daocubator.sputnik-dao.near', 'daocubator', ''],
@@ -188,9 +188,7 @@ function WebHome() {
         </h1>
         <p className="lede">Every payment dated by the vote that paid it, valued at that day’s price, placed in an account. With the questions an auditor would ask.</p>
         <div className="actions center">
-          <button type="button" className="btn btn-primary btn-lg" onClick={() => openDemo(books)}>
-            Open the demo books
-          </button>
+          <MorphButton label="Open the demo books" hover="Real books, no wait" icon="arrow" size="lg" onClick={() => openDemo(books)} />
           <button type="button" className="btn btn-plain btn-lg" onClick={() => buildRef.current?.scrollIntoView({ behavior: 'smooth' })}>
             Build any treasury ›
           </button>

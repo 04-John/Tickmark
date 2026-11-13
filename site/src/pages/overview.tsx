@@ -5,11 +5,12 @@ import type { Closing } from '../../../core/closing.ts';
 import type { SignedReport } from '../../../core/report.ts';
 import type { Network } from '../../../core/rpc.ts';
 import { PhoneNav, useBooks, useReport } from '../app.tsx';
+import { openPalette } from '../palette.tsx';
 import { closingsOf, STEPS } from '../lib/data.ts';
-import { day, elapsed, month, plural, qty, usd } from '../lib/format.ts';
+import { day, elapsed, month, plural, qty, shortAccount, usd } from '../lib/format.ts';
 import { href, useAnswers, useNow, usePhone } from '../lib/hooks.ts';
 import { BALANCE, KIND, LOCATION } from '../lib/labels.ts';
-import { Group, Icon, Pill, Row, Sk, Stamp, Stat } from '../ui.tsx';
+import { Check, Disclosure, Group, Icon, MorphButton, Pill, Row, Sk, Stamp, Stat } from '../ui.tsx';
 
 const SHADES = ['var(--ink)', 'var(--ink-2)', 'var(--ink-3)', 'var(--ink-4)'];
 
@@ -198,6 +199,11 @@ function WebOverview({ report, s, closedBy }: { report: SignedReport; s: ReturnT
           <a className="btn btn-gray btn-sm" href={href('downloads')}>
             Download
           </a>
+          {s.done < report.questions.length ? (
+            <MorphButton href={href('questions')} label="Review questions" hover={s.st.suspenseCents ? `Explain ${usd(s.st.suspenseCents)}` : `Answer ${report.questions.length - s.done} more`} icon="pencil" size="sm" />
+          ) : (
+            <MorphButton href={href('close')} label="Close the books" hover="Put it to a vote" icon="tick" size="sm" tone="ok" />
+          )}
         </div>
       </div>
 
@@ -240,28 +246,122 @@ function WebOverview({ report, s, closedBy }: { report: SignedReport; s: ReturnT
         </section>
       </div>
 
-      <div className="grid-2">
-        <section className="card">
-          <div className="card-head">
-            <h2 className="title-3">Balance check</h2>
-          </div>
+      <ActionItems report={report} />
+
+      <nav className="quick" aria-label="Quick actions">
+        <a href={href('journal')}>
+          <Icon name="journal" size={15} /> Open the journal
+        </a>
+        <a href={href('payees')}>
+          <Icon name="payees" size={15} /> Payees
+        </a>
+        <a href={href('downloads')}>
+          <Icon name="downloads" size={15} /> QuickBooks & Xero files
+        </a>
+        <a href={href('close')}>
+          <Icon name="close" size={15} /> Close the books
+        </a>
+        <a href={href('verify')}>
+          <Icon name="verify" size={15} /> Check a report
+        </a>
+      </nav>
+
+      <div className="disclosures">
+        <Disclosure
+          title="Balance check"
+          summary={
+            <>
+              {report.balances.map((b) => `${b.symbol} ${b.location === 'wallet' ? '' : `(${LOCATION[b.location] ?? b.location}) `}`).join(', ')}
+              <span className={s.gaps ? 'pencil' : 'ok'}>{s.gaps ? ` · ${plural(s.gaps, 'gap')}` : ' · ties out'}</span>
+            </>
+          }
+        >
           <BalanceEquation report={report} />
-        </section>
-        <section className="card list-card">
-          <div className="card-head pad-x">
-            <h2 className="title-3">Questions</h2>
-            <a href={href('questions')}>Start ›</a>
+        </Disclosure>
+        <Disclosure title="Questions by kind" summary={`${s.kinds.size} kinds · ${report.questions.length - s.done} open`}>
+          <div className="kind-list">
+            {[...s.kinds].map(([kind, k]) => (
+              <a key={kind} className={`list-row ${k.open ? '' : 'done'}`} href={href('questions')}>
+                <span>{KIND[kind as keyof typeof KIND] ?? kind}</span>
+                <span className="num">{k.open ? k.open : '✓'}</span>
+              </a>
+            ))}
           </div>
-          {[...s.kinds].map(([kind, k]) => (
-            <a key={kind} className={`list-row ${k.open ? '' : 'done'}`} href={href('questions')}>
-              <span>{KIND[kind as keyof typeof KIND] ?? kind}</span>
-              <span className="num">{k.open ? k.open : '✓'}</span>
-            </a>
-          ))}
-          {s.kinds.size === 0 && <p className="secondary pad-x">No questions: every payment was explained and the balances tie out.</p>}
-        </section>
+        </Disclosure>
+        <Disclosure title="Payees" summary={`${report.payees.length} · largest ${report.payees[0] ? shortAccount(report.payees[0].account) : '—'}`}>
+          <div className="kind-list">
+            {report.payees.slice(0, 6).map((p) => (
+              <a key={p.account} className="list-row plain" href={href('payees', p.account)}>
+                <span className="mono truncate">{shortAccount(p.account)}</span>
+                <span className="num">{usd(p.cents)}</span>
+              </a>
+            ))}
+          </div>
+        </Disclosure>
       </div>
     </div>
+  );
+}
+
+/** Open questions as a checklist, like action items: tick one off here, or open it to see the payments it cites. */
+function ActionItems({ report }: { report: SignedReport }) {
+  const { answers, save } = useAnswers(report.fingerprint);
+  const open = report.questions.filter((q) => !answers[q.id]?.answered);
+  const recent = report.questions.filter((q) => answers[q.id]?.answered).slice(0, Math.max(0, 5 - open.length));
+  const rows = [...open.slice(0, 5), ...recent];
+  return (
+    <section className="card list-card action-items">
+      <div className="card-head pad-x">
+        <h2 className="title-3">
+          Questions to answer <span className="count-chip num">{open.length}</span>
+        </h2>
+        <a href={href('questions')}>All questions ›</a>
+      </div>
+      {rows.map((q) => {
+        const done = !!answers[q.id]?.answered;
+        return (
+          <div key={q.id} className={`action-row ${done ? 'done' : ''}`}>
+            <Check checked={done} onChange={() => save(q.id, { answered: !done })} label={`Mark answered: ${q.ask}`} />
+            <a href={href('questions', q.id)} className="action-text">
+              <span className="truncate">{q.ask}</span>
+            </a>
+            <span className="action-meta mono">
+              {q.payee ? `${/^[0-9a-f]{64}$/.test(q.payee) ? shortAccount(q.payee) : q.payee.split('.')[0]} · ` : ''}
+              {q.cents === null ? '' : usd(q.cents)}
+            </span>
+          </div>
+        );
+      })}
+      {rows.length === 0 && <p className="secondary pad-x">No questions: every payment was explained and the balances tie out.</p>}
+    </section>
+  );
+}
+
+function PhoneActions({ report }: { report: SignedReport }) {
+  const { answers, save } = useAnswers(report.fingerprint);
+  const open = report.questions.filter((q) => !answers[q.id]?.answered);
+  if (!report.questions.length) return null;
+  return (
+    <Group title={`Questions to answer · ${open.length}`}>
+      {(open.length ? open : report.questions).slice(0, 3).map((q) => {
+        const done = !!answers[q.id]?.answered;
+        return (
+          <div key={q.id} className={`row action-row ${done ? 'done' : ''}`}>
+            <Check checked={done} onChange={() => save(q.id, { answered: !done })} label={`Mark answered: ${q.ask}`} />
+            <a className="row-two action-text" href={href('questions', q.id)}>
+              <span className="strong">{KIND[q.kind]}</span>
+              <span className="secondary small truncate">{q.ask}</span>
+            </a>
+            {q.cents !== null && <span className="row-value num">{usd(q.cents)}</span>}
+          </div>
+        );
+      })}
+      {open.length > 3 && (
+        <Row href={href('questions')}>
+          <span className="row-main link-c">All {open.length} questions</span>
+        </Row>
+      )}
+    </Group>
   );
 }
 
@@ -274,6 +374,9 @@ function PhoneOverview({ report, s, closedBy }: { report: SignedReport; s: Retur
   return (
     <>
       <PhoneNav back="#/" backLabel="Treasuries">
+        <button type="button" className="icon-btn" aria-label="Search and quick actions" onClick={openPalette}>
+          <Icon name="search" size={21} />
+        </button>
         <button type="button" className="icon-btn" aria-label="Share these books" onClick={share}>
           <Icon name="share" size={22} />
         </button>
@@ -307,6 +410,7 @@ function PhoneOverview({ report, s, closedBy }: { report: SignedReport; s: Retur
             href={href('questions')}
           />
         </div>
+        <PhoneActions report={report} />
         <Group title="Where it went">
           <div className="stack-bar" aria-hidden="true">
             {[...s.expense, ...s.suspense].map((r, i) => (

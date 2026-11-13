@@ -9,7 +9,7 @@ import { PhoneNav, useReport } from '../app.tsx';
 import { day, shortAccount, usd } from '../lib/format.ts';
 import { go, href, useAnswers, usePhone, type Answer } from '../lib/hooks.ts';
 import { KIND } from '../lib/labels.ts';
-import { Empty, Group, Icon, Pill, Row, Segmented } from '../ui.tsx';
+import { Empty, Group, Icon, MorphButton, Pill, Row, Segmented } from '../ui.tsx';
 
 type Filter = 'open' | 'answered' | 'all';
 
@@ -104,9 +104,7 @@ function Detail({ q, report, onNext }: { q: Question; report: SignedReport; onNe
     </>
   ) : (
     <>
-      <button type="button" className="btn btn-ok" onClick={answer}>
-        Mark answered
-      </button>
+      <MorphButton tone="ok" label="Mark answered" hover={onNext ? 'Answered, next one' : 'Mark it answered'} icon="tick" onClick={answer} />
       {onNext && (
         <button type="button" className={phone ? 'btn btn-plain' : 'btn btn-gray'} onClick={onNext}>
           Skip for now
