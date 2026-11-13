@@ -15,12 +15,18 @@
     "scan": "node cli/tickmark.ts scan",
     "prices:update": "node scripts/update-prices.ts",
     "site:build": "node scripts/build-site.ts",
-    "site:serve": "node scripts/serve-site.ts"
+    "site:serve": "node scripts/serve-site.ts",
+    "site:dev": "vite --config vite.config.ts"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.3",
     "near-api-js": "7.4.0",
-    "typescript": "7.0.2"
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "typescript": "7.0.2",
+    "vite": "8.3.3"
   },
   "dependencies": {
     "@nearai/inference-sdk": "0.2.1"

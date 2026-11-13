@@ -202,17 +202,22 @@ The same code runs in the browser. It reads the public NEAR endpoints directly, 
 **Do:**
 
 ```sh
-npm run site:build     # compiles core/ and site/app.ts to browser JavaScript (no bundler)
-npm run site:serve     # http://localhost:5180
+npm run site:dev       # Vite dev server on http://localhost:5180, serving the committed data from data/ and demo/
+npm run site:build     # Vite + React build of site/ (bundles core/ for the browser) into site/dist
+npm run site:serve     # serves the built site/dist on http://localhost:5180
 ```
 
 Open `http://localhost:5180/?dao=daocubator.sputnik-dao.near`.
 
 **See:**
-- the figures, spending by account and month, the balance check, the questions, and the journal with the reason for each line;
-- every download from `--out`;
-- the close-the-books proposal, with a check that your account may submit it;
-- a "Check a report" box that rebuilds any `report.json` from the chain and shows the vote that approved it.
+- the demo treasury's books the moment the page opens (`demo/report.json`), and any treasury built live behind skeleton screens that fill in step by step;
+- an overview of where the money went (by account, by month), the balance check drawn as an equation, and the questions counted by kind;
+- the questions as a work queue: each opens the payments it cites, and answers are kept in your browser and downloaded with the books (the signed report never changes);
+- a searchable journal, grouped by payee, month or account, with one line's words, evidence, paying transaction and both entries;
+- a page per payee, every download from `--out` with a preview, the close-the-books flow, and "Check a report";
+- on phones, its own layout: large titles, inset lists, a tab bar and sheets.
+
+`?dao=…&network=…&since=…&block=…` opens exact books, block for block.
 
 Published at https://04-john.github.io/Tickmark/ by [.github/workflows/pages.yml](.github/workflows/pages.yml). On every push, that workflow runs `npm run check` and builds the site.
 
@@ -244,7 +249,7 @@ Only money that moved counts as paid: the proposal is `Approved`, and for bulk l
 core/       reading the chain, decoding, dates, prices, accounts, journal, questions, balances, report, CSV
             (no Node-only imports: the website runs the same code)
 cli/        the tickmark command, its NEAR AI client, and the Node wrapper around core/pipeline.ts
-site/       the website (index.html, styles.css, app.ts); built into site/dist
+site/       the website: a Vite + React app in site/src over core/ (web and phone layouts); built into site/dist
 scripts/    price snapshot refresh, token check, date proof, multi-DAO measurement, site build and preview
 data/       committed price snapshot, and the headline measurement (data/measure)
 test/       unit tests with fictional fixtures in real on-chain shapes

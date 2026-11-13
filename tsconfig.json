@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true,
@@ -14,7 +17,17 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ],
+    "jsx": "react-jsx"
   },
-  "include": ["core", "cli", "scripts", "test", "site"]
+  "include": [
+    "core",
+    "cli",
+    "scripts",
+    "test",
+    "site/src",
+    "vite.config.ts"
+  ]
 }
