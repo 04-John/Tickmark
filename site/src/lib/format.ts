@@ -30,6 +30,12 @@ export function shortAccount(account: string): string {
   return /^[0-9a-f]{64}$/.test(account) ? `${account.slice(0, 8)}…${account.slice(-4)}` : account;
 }
 
+/** A short name for lists: "studio" for studio.tickmark-demo.testnet, "120bd3f9…" for a hex account. */
+export function nameOf(account: string | null | undefined): string {
+  if (!account) return '';
+  return /^[0-9a-f]{64}$/.test(account) ? `${account.slice(0, 8)}…` : account.split('.')[0]!;
+}
+
 /** The part of a payee name worth showing first: "studio" for studio.tickmark-demo.testnet. */
 export function payeeLabel(account: string): string {
   if (/^[0-9a-f]{64}$/.test(account)) return shortAccount(account);

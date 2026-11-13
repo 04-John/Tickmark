@@ -4710,6 +4710,90 @@ a.stat:hover {
   max-width: 1200px;
 }
 
+/* home and Check a report: the same calm scale as the app (no jumbo figures, no coloured panels) */
+.hero h1 {
+  font-size: clamp(40px, 4.6vw, 62px);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+}
+.hero .lede {
+  font-size: 18px;
+}
+.display-2 {
+  font-size: clamp(28px, 2.6vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+.display-3 {
+  font-size: clamp(24px, 2vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+.headline .card {
+  padding: 22px 24px;
+  border-radius: var(--r-card);
+  font-size: 14px;
+}
+.headline .big {
+  font-size: 34px;
+  letter-spacing: -0.035em;
+}
+.headline .card.ink {
+  background: var(--card);
+  color: var(--label);
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+.headline .card.ink span:not(.big) {
+  color: var(--secondary);
+}
+.headline .pencil-on-ink {
+  color: var(--pencil);
+}
+.build-card {
+  padding: 28px;
+  border-radius: var(--r-card);
+}
+.verify-head .lede {
+  font-size: 15px;
+}
+
+/* a question row on phones is one line: type, then who, cut with an ellipsis if long */
+.phone .action-row .action-text {
+  display: block;
+}
+
+/* phone bars are solid, so nothing shows through behind the tab labels or the back button */
+.phone {
+  --bg-phone: var(--bg);
+}
+.tabbar {
+  background: var(--bg-phone, var(--bg));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.pnav {
+  background: var(--bg-phone, var(--bg));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* the close-the-books stepper: finished stages are plain with a green tick, the current one is marked */
+.stepper li,
+.web .stepper li:not(.done):not(.now) {
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--sep);
+  font-size: 13.5px;
+}
+.stepper li.done {
+  background: var(--card);
+  color: var(--label);
+}
+.stepper li.now {
+  background: var(--ink);
+  color: var(--on-ink);
+  box-shadow: none;
+}
+
 /* journal: names and dates in the body face, at the body size; codes keep the mono face */
 .web .table {
   font-size: 14px;

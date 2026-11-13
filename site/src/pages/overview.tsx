@@ -8,7 +8,7 @@ import { PhoneNav, useBooks, useReport } from '../app.tsx';
 import { doing, nextFor, NextStep, useClosedBy, useProgress } from '../guide.tsx';
 import { openPalette } from '../palette.tsx';
 import { STEPS } from '../lib/data.ts';
-import { day, elapsed, month, plural, qty, usd } from '../lib/format.ts';
+import { day, elapsed, month, nameOf, plural, qty, usd } from '../lib/format.ts';
 import { href, useAnswers, useNow, usePhone } from '../lib/hooks.ts';
 import { BALANCE, KIND, LOCATION } from '../lib/labels.ts';
 import { Check, Group, Icon, Pill, Row, Sk, Stamp, Stat } from '../ui.tsx';
@@ -202,7 +202,9 @@ function ActionItems({ report }: { report: SignedReport }) {
           <div key={q.id} className={`action-row ${done ? 'done' : ''}`}>
             <Check checked={done} onChange={() => save(q.id, { answered: !done })} label={`Mark answered: ${q.ask}`} />
             <a href={href('questions', q.id)} className="action-text" title={q.ask}>
-              <span className="truncate">{KIND[q.kind]}</span>
+              <span className="truncate">
+                {KIND[q.kind]} <span className="q-who">{nameOf(q.payee)}</span>
+              </span>
             </a>
             <span className="action-meta num">{q.cents === null ? '' : usd(q.cents)}</span>
           </div>
@@ -225,7 +227,7 @@ function PhoneActions({ report }: { report: SignedReport }) {
           <div key={q.id} className={`row action-row ${done ? 'done' : ''}`}>
             <Check checked={done} onChange={() => save(q.id, { answered: !done })} label={`Mark answered: ${q.ask}`} />
             <a className="row-main action-text truncate" href={href('questions', q.id)}>
-              {KIND[q.kind]}
+              {KIND[q.kind]} <span className="q-who">{nameOf(q.payee)}</span>
             </a>
             {q.cents !== null && <span className="row-value num">{usd(q.cents)}</span>}
           </div>

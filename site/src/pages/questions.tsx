@@ -8,7 +8,7 @@ import type { Question } from '../../../core/questions.ts';
 import type { SignedReport } from '../../../core/report.ts';
 import { PhoneNav, useReport } from '../app.tsx';
 import { NextStep } from '../guide.tsx';
-import { day, usd } from '../lib/format.ts';
+import { day, nameOf, usd } from '../lib/format.ts';
 import { go, href, useAnswers, usePhone, type Answer } from '../lib/hooks.ts';
 import { KIND } from '../lib/labels.ts';
 import { Empty, Group, MorphButton, Row, Segmented } from '../ui.tsx';
@@ -37,11 +37,8 @@ export function downloadText(name: string, text: string, type = 'text/csv') {
 
 const prefix = (report: SignedReport) => report.dao.split('.')[0];
 
-/** Who a question is about, short: "studio" for studio.tickmark-demo.testnet, "120bd3f9…" for a hex account. */
-function who(q: Question): string {
-  if (!q.payee) return '';
-  return /^[0-9a-f]{64}$/.test(q.payee) ? `${q.payee.slice(0, 8)}…` : q.payee.split('.')[0]!;
-}
+/** Who a question is about, short. */
+const who = (q: Question) => nameOf(q.payee);
 
 function Detail({ q, report, onNext }: { q: Question; report: SignedReport; onNext?: () => void }) {
   const phone = usePhone();
