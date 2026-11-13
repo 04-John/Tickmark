@@ -2,6 +2,15 @@
 
 export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Longest a single request may take. A free endpoint sometimes accepts a connection and never answers; without a
+ * limit that one request stalls the whole run forever. Past the limit the request fails and is retried like any other.
+ */
+export const REQUEST_TIMEOUT_MS = 30_000;
+
+/** A fresh time limit for one request (Node and browsers). */
+export const timeLimit = (ms: number = REQUEST_TIMEOUT_MS): AbortSignal => AbortSignal.timeout(ms);
+
 /** Statuses worth retrying: timeouts, rate limits and server errors. */
 export function isRetryableStatus(status: number): boolean {
   return status === 408 || status === 429 || status >= 500;

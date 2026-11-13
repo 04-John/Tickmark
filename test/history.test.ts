@@ -203,6 +203,23 @@ test('TxIndex does not retry a bad request', async () => {
   await assert.rejects(new TxIndex().transactions(Array.from({ length: 21 }, (_, i) => String(i))), /at most 20/);
 });
 
+test('a request that never answers is cut off at the time limit and retried, so a run cannot stall', async () => {
+  let calls = 0;
+  const hangsOnce = (async (_url: string, init?: RequestInit) => {
+    calls++;
+    if (calls === 1) {
+      // Accepts the request and never answers, until the time limit aborts it.
+      return new Promise<Response>((_resolve, reject) => init?.signal?.addEventListener('abort', () => reject(init.signal!.reason)));
+    }
+    return Response.json({ result: { header: { height: 7, hash: 'H', timestamp_nanosec: '1772452800000000000' } } });
+  }) as typeof fetch;
+  const started = Date.now();
+  const block = await new Rpc({ fetchImpl: hangsOnce, timeoutMs: 50, retryDelayMs: 1 }).block(7);
+  assert.equal(block.height, 7);
+  assert.equal(calls, 2, 'the hung request was abandoned and the next attempt answered');
+  assert.ok(Date.now() - started < 2000);
+});
+
 test('Rpc reads block times, pins state to a block, and does not retry chain errors', async () => {
   const f = fakeFetch([
     () => Response.json({ result: { header: { height: 42, hash: 'H', timestamp_nanosec: '1772452800123456789' } } }),

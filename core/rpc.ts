@@ -1,5 +1,5 @@
 // Read-only NEAR RPC: contract view calls and block headers, with retries. Works in Node and browsers (global fetch).
-import { FinalError, throttled, throwIfRetryable, withRetries } from './http.ts';
+import { FinalError, throttled, throwIfRetryable, timeLimit, withRetries } from './http.ts';
 import { nsToMs, toBase64 } from './units.ts';
 
 export type Network = 'mainnet' | 'testnet';
@@ -48,6 +48,8 @@ export type RpcOptions = {
   blockId?: number;
   /** Attempts for network errors, timeouts, 429 and 5xx. */
   attempts?: number;
+  /** Longest one request may take (default 30 s); past it the request is retried. */
+  timeoutMs?: number;
   /** First wait between attempts; doubles each time. */
   retryDelayMs?: number;
   fetchImpl?: typeof fetch;
@@ -83,7 +85,7 @@ export class Rpc implements ViewClient, BlockClient {
       this.options.attempts ?? 6,
       () =>
         throttled(this.url, async () => {
-          const res = await this.fetchImpl(this.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+          const res = await this.fetchImpl(this.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: timeLimit(this.options.timeoutMs) });
           throwIfRetryable(res);
           const json = (await res.json()) as RpcAnswer<T>;
           if (json.error) {

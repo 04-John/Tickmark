@@ -5,7 +5,7 @@
 // lines record their own "paid in block N"; that block's time comes from an archival RPC node.
 // When neither is found the submission date is kept, and the movement says so.
 import { mapLimit } from './dao.ts';
-import { FinalError, throttled, throwIfRetryable, withRetries } from './http.ts';
+import { FinalError, throttled, throwIfRetryable, timeLimit, withRetries } from './http.ts';
 import type { BlockClient, Network } from './rpc.ts';
 import type { Movement } from './types.ts';
 import { parseBase64Json } from './units.ts';
@@ -33,7 +33,7 @@ export interface TxSource {
   transactions(hashes: string[]): Promise<IndexedTx[]>;
 }
 
-export type TxIndexOptions = { network?: Network; url?: string; attempts?: number; retryDelayMs?: number; fetchImpl?: typeof fetch };
+export type TxIndexOptions = { network?: Network; url?: string; attempts?: number; retryDelayMs?: number; timeoutMs?: number; fetchImpl?: typeof fetch };
 
 /** FastNear's transaction index. Free, no key, allows browser requests. */
 export class TxIndex implements TxSource {
@@ -58,6 +58,7 @@ export class TxIndex implements TxSource {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
+            signal: timeLimit(this.options.timeoutMs),
           });
           throwIfRetryable(res);
           if (!res.ok) throw new FinalError(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
