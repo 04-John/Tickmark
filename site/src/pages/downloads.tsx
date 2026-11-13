@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react';
 import { exportBooks, type ExportFile } from '../../../core/exports.ts';
 import { PhoneNav, useReport } from '../app.tsx';
+import { NextStep } from '../guide.tsx';
 import { href, useAnswers, usePhone } from '../lib/hooks.ts';
 import { Group, Icon, Row } from '../ui.tsx';
 import { answersCsv, downloadText } from './questions.tsx';
@@ -111,13 +112,14 @@ export function Downloads() {
   if (phone)
     return (
       <>
-        <PhoneNav back={href('books')} backLabel="Books" />
+        <PhoneNav back={href('more')} backLabel="More" />
         <div className="pscroll">
           <div className="large-head">
             <h1 className="large-title">Downloads</h1>
-            <div className="sub secondary">Built on this phone from the signed report. Tap a file to save it.</div>
+            <div className="sub secondary">Tap a file to save it.</div>
           </div>
           {lists}
+          <NextStep page="downloads" />
         </div>
       </>
     );
@@ -127,8 +129,8 @@ export function Downloads() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="title-xl">Hand the books to accounting</h1>
-          <span className="secondary">Every file is built in your browser from the signed report. Spreadsheet-safe CSV.</span>
+          <h1 className="title-xl">Downloads</h1>
+          <span className="secondary">For QuickBooks, Xero and review.</span>
         </div>
         <button type="button" className="btn btn-primary" onClick={saveAll}>
           Download all
@@ -175,6 +177,7 @@ export function Downloads() {
           <p className="secondary small">{file.name.endsWith('.csv') ? 'First rows only. Set up the chart of accounts before importing; the guide to the files explains every column.' : 'Shown as plain text, exactly as downloaded.'}</p>
         </aside>
       </div>
+      <NextStep page="downloads" />
     </div>
   );
 }

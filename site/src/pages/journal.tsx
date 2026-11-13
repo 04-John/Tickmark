@@ -4,6 +4,7 @@ import type { JournalEntry } from '../../../core/books.ts';
 import { CATEGORIES, type CategoryId } from '../../../core/classify.ts';
 import type { SignedReport } from '../../../core/report.ts';
 import { PhoneNav, useReport } from '../app.tsx';
+import { NextStep } from '../guide.tsx';
 import { explorer } from '../lib/data.ts';
 import { day, exactUsd, month, plural, shortAccount, usd } from '../lib/format.ts';
 import { go, href, usePhone } from '../lib/hooks.ts';
@@ -49,7 +50,7 @@ export function LineDetail({ entry, report, onClose }: { entry: JournalEntry; re
           {entry.quantity} {entry.symbol}
           {entry.unitPrice !== null ? ` × $${entry.unitPrice.toLocaleString('en-US', { maximumFractionDigits: 4 })} on ${entry.priceDate}` : ' · no trusted price'}
         </span>
-        <a className="mono small" href={href('payees', entry.payee)}>
+        <a className="small" href={href('payees', entry.payee)}>
           to {shortAccount(entry.payee)}
         </a>
       </div>
@@ -184,7 +185,7 @@ export function Journal({ id }: { id?: string }) {
               {g.lines.map((e) => (
                 <Row key={e.ref} onClick={() => open(e.ref)} className={e.section === 'suspense' ? 'pencil' : ''}>
                   <span className="row-two">
-                    <span className="mono truncate">{shortAccount(e.payee)}</span>
+                    <span className="truncate">{shortAccount(e.payee)}</span>
                     <span className="secondary small truncate">
                       {CATEGORIES[e.category].name} · {day(e.date)}
                     </span>
@@ -195,6 +196,7 @@ export function Journal({ id }: { id?: string }) {
             </Group>
           ))}
           {j.lines.length === 0 && <Empty title="No lines match">Try another search.</Empty>}
+          <NextStep page="journal" />
         </div>
         {selected && (
           <div className="sheet-backdrop" onClick={closeLine}>
@@ -221,7 +223,7 @@ export function Journal({ id }: { id?: string }) {
       <div className="page-head">
         <div>
           <h1 className="title-xl">{filterAccount ? CATEGORIES[filterAccount].name : 'Journal'}</h1>
-          <span className="secondary num">
+          <span className="secondary num small">
             {plural(j.lines.length, 'paid line')} · {usd(total)} · exact amounts, UTC dates
             {filterAccount && (
               <>
@@ -258,12 +260,12 @@ export function Journal({ id }: { id?: string }) {
                   const flagged = report.questions.some((q) => q.proposals.includes(e.proposalId));
                   return (
                     <tr key={e.ref} className={`${selected?.ref === e.ref ? 'selected' : ''} ${e.section === 'suspense' ? 'pencil' : ''}`} onClick={() => open(e.ref)}>
-                      <td className="num faint">
+                      <td className="num faint" title={`${e.date} UTC`}>
                         <button type="button" className="row-link" onClick={() => open(e.ref)}>
-                          {e.date}
+                          {day(e.date)}
                         </button>
                       </td>
-                      <td className="mono truncate-cell" title={e.payee}>
+                      <td className="truncate-cell" title={e.payee}>
                         {shortAccount(e.payee)} {flagged && <span className="flag" title="A question cites this line" />}
                       </td>
                       <td>
@@ -305,6 +307,7 @@ export function Journal({ id }: { id?: string }) {
           </aside>
         )}
       </div>
+      <NextStep page="journal" />
     </div>
   );
 }

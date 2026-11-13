@@ -4,11 +4,11 @@ import type { SignedReport } from '../../../core/report.ts';
 import type { Network } from '../../../core/rpc.ts';
 import { useBooks } from '../app.tsx';
 import { demoReport, measure, priceRange, type Measure } from '../lib/data.ts';
-import { go, href, usePhone } from '../lib/hooks.ts';
+import { go, href, usePhone, useTheme } from '../lib/hooks.ts';
 import { usd } from '../lib/format.ts';
-import { Chevron, Group, Icon, Logo, Mark, MorphButton, Row, Segmented, Sk, Stat } from '../ui.tsx';
+import { Chevron, Group, Icon, Logo, Mark, MorphButton, Row, Segmented, Sk, Stat, ThemeButton } from '../ui.tsx';
 
-const EXAMPLES: [string, string, string][] = [
+export const EXAMPLES: [string, string, string][] = [
   ['daocubator.sputnik-dao.near', 'daocubator', ''],
   ['n1-treasury.sputnik-dao.near', 'Near One treasury', ''],
   ['braindao-treasury.sputnik-dao.near', 'BrainDAO', ''],
@@ -35,18 +35,20 @@ function useBuild() {
   };
 }
 
-function openDemo(books: ReturnType<typeof useBooks>) {
+export function openDemo(books: ReturnType<typeof useBooks>) {
   if (books.source !== 'demo') books.openDemo();
   go('books');
 }
 
-function BuildForm({ range, compact }: { range: { from: string; to: string } | null; compact?: boolean }) {
+export function BuildForm({ range, compact, onStart }: { range: { from: string; to: string } | null; compact?: boolean; onStart?: () => void }) {
   const build = useBuild();
   const [dao, setDao] = useState('');
   const [since, setSince] = useState('');
   const [network, setNetwork] = useState<Network>('mainnet');
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    if (!dao.trim()) return;
+    onStart?.();
     build(dao, network, since || range?.from);
   };
   return (
@@ -97,7 +99,7 @@ function DemoPreview({ demo }: { demo: SignedReport | null }) {
             <>
               <Stat label="Spending" value={usd(demo.statement.spendingCents)} />
               <Stat label="Not explained" value={usd(demo.statement.suspenseCents)} tone="pencil" />
-              <Stat label="Balances" value={demo.balances.every((b) => b.status === 'ties') ? 'Tie out' : 'Gaps'} tone={demo.balances.every((b) => b.status === 'ties') ? 'ok' : 'pencil'} />
+              <Stat label="Adds up on chain" value={demo.balances.every((b) => b.status === 'ties') ? 'Yes' : 'Gaps'} tone={demo.balances.every((b) => b.status === 'ties') ? 'ok' : 'pencil'} />
               <Stat label="Questions" value={demo.questions.length} />
             </>
           ) : (
@@ -150,6 +152,7 @@ function Headline({ m }: { m: Measure | null }) {
 
 function WebHome() {
   const { demo, m, range } = useHomeData();
+  const [theme, toggleTheme] = useTheme();
   const build = useBuild();
   const buildRef = useRef<HTMLDivElement>(null);
   const how = useRef<HTMLElement>(null);
@@ -163,6 +166,9 @@ function WebHome() {
             <button type="button" className="link-quiet" onClick={() => openDemo(books)}>
               Demo
             </button>
+            <a className="link-quiet" href={href('welcome')}>
+              Guide
+            </a>
             <button type="button" className="link-quiet" onClick={() => how.current?.scrollIntoView({ behavior: 'smooth' })}>
               How it works
             </button>
@@ -173,9 +179,12 @@ function WebHome() {
               GitHub
             </a>
           </nav>
-          <button type="button" className="btn btn-primary btn-sm" onClick={() => buildRef.current?.scrollIntoView({ behavior: 'smooth' })}>
-            Build books
-          </button>
+          <span className="home-nav-end">
+            <ThemeButton theme={theme} onToggle={toggleTheme} />
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => buildRef.current?.scrollIntoView({ behavior: 'smooth' })}>
+              Build books
+            </button>
+          </span>
         </div>
       </header>
 
@@ -224,14 +233,15 @@ function WebHome() {
       </section>
 
       <section className="wrap section" ref={how}>
-        <h2 className="display-2">One engine. Pinned to one block.</h2>
+        <h2 className="display-2">How Tickmark works</h2>
+        <p className="lede">Five steps, all in your browser, from public NEAR data. Tickmark only reads: it never moves money or signs anything.</p>
         <ol className="steps">
           {[
-            ['Read', 'Proposals and policy at one block.'],
-            ['Decode and date', 'Every payment, and the vote that paid it.'],
-            ['Value and place', 'The day’s price, an account, the evidence.'],
-            ['Check and ask', 'Balances against the chain, then questions.'],
-            ['Sign', 'A SHA-256 fingerprint the council votes on.'],
+            ['Read the treasury', 'Every proposal and vote, as of one moment on chain.'],
+            ['Find each payment', 'And the vote that actually paid it, for its date.'],
+            ['Price and file it', 'In dollars on that day, in an account, with the reason.'],
+            ['Check and ask', 'Does the money add up? What needs a human answer?'],
+            ['Seal it', 'A fingerprint the council approves with one vote.'],
           ].map(([t, d], i) => (
             <li key={t} className="card">
               <span className="eyebrow num">{i + 1}</span>
@@ -254,21 +264,27 @@ function WebHome() {
 
 function PhoneHome() {
   const { demo, m, range } = useHomeData();
+  const [theme, toggleTheme] = useTheme();
   const books = useBooks();
   const build = useBuild();
   return (
     <div className="phone">
       <div className="pnav">
-        <div className="pnav-lead" />
+        <div className="pnav-lead">
+          <a className="pnav-link" href={href('welcome')}>
+            Guide
+          </a>
+        </div>
         <div className="pnav-title" />
         <div className="pnav-trail">
+          <ThemeButton theme={theme} onToggle={toggleTheme} className="icon-btn" />
           <a href={href('verify')}>Verify</a>
         </div>
       </div>
       <div className="pscroll">
-        <h1 className="large-title">Treasuries</h1>
-        <div className="pad">
-          <BuildForm range={range} compact />
+        <div className="large-head">
+          <h1 className="large-title">Treasuries</h1>
+          <p className="secondary">Clear books for any NEAR DAO treasury, checked against the chain.</p>
         </div>
         <div className="pad">
           <button type="button" className="demo-card" onClick={() => openDemo(books)}>
@@ -300,7 +316,13 @@ function PhoneHome() {
             </div>
           </button>
         </div>
-        <Group title="Build live" footer="Books build on your phone from public NEAR data. Nothing is signed.">
+        <section className="group">
+          <h2 className="group-title">Build a treasury’s books</h2>
+          <div className="build-card-phone">
+            <BuildForm range={range} compact />
+          </div>
+        </section>
+        <Group title="Or try one of these" footer="Books build on your phone from public NEAR data. Nothing is signed.">
           {EXAMPLES.map(([dao, name, note]) => (
             <Row key={dao} onClick={() => build(dao, 'mainnet', range?.from)} chevron={false}>
               <span className="row-icon">{name[0]!.toUpperCase()}</span>
@@ -321,6 +343,9 @@ function PhoneHome() {
           </div>
         )}
         <div className="pad foot-links">
+          <a href={href('welcome')}>
+            <Icon name="info" size={16} /> How Tickmark works
+          </a>
           <a href={href('verify')}>
             <Icon name="verify" size={16} /> Check a report
           </a>

@@ -3,10 +3,13 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { SignedReport } from '../../core/report.ts';
 import { buildBooks, demoReport, type RunRequest } from './lib/data.ts';
-import { go, href, useAnswers, usePhone, useRoute } from './lib/hooks.ts';
-import { Icon, Mark, MorphButton, NetworkPill } from './ui.tsx';
+import { go, href, useAnswers, usePhone, useRoute, useSideOpen, useTheme } from './lib/hooks.ts';
+import { Icon, Mark, MorphButton, NetworkPill, ThemeButton } from './ui.tsx';
 import { Palette, SearchButton, usePaletteShortcut } from './palette.tsx';
+import { CHECK, doing, FLOW, LOOKUP, markSeen, nextFor, PAGE_TITLE, useProgress, useWelcomed, type Step } from './guide.tsx';
 import { Home } from './pages/home.tsx';
+import { More } from './pages/more.tsx';
+import { Welcome } from './pages/welcome.tsx';
 import { Overview, LoadingBooks } from './pages/overview.tsx';
 import { Questions } from './pages/questions.tsx';
 import { Journal } from './pages/journal.tsx';
@@ -97,91 +100,103 @@ function BooksProvider({ children }: { children: ReactNode }) {
 
 // ---------------------------------------------------------------- shells
 
-/** The source list, grouped by relationship: the books, who and what they hand on, and approving them. */
-const NAV: [string, [string, string, string][]][] = [
-  [
-    'Books',
-    [
-      ['books', 'Overview', 'overview'],
-      ['questions', 'Questions', 'questions'],
-      ['journal', 'Journal', 'journal'],
-    ],
-  ],
-  [
-    'Hand on',
-    [
-      ['payees', 'Payees', 'payees'],
-      ['downloads', 'Downloads', 'downloads'],
-    ],
-  ],
-  [
-    'Approve',
-    [
-      ['close', 'Close the books', 'close'],
-      ['verify', 'Check a report', 'verify'],
-    ],
-  ],
-];
-
+/**
+ * The source list: the four steps in order, then the pages to look things up in. Closed, it is a rail of icons
+ * (the label shows on hover); open, each icon has its name. A green dot marks a step that is done.
+ */
 function Sidebar({ page }: { page: string }) {
   const books = useBooks();
-  const report = books.report;
-  const { answers } = useAnswers(report?.fingerprint ?? 'none');
-  const open = report ? report.questions.filter((q) => !answers[q.id]?.answered).length : 0;
-  const count = (p: string) => {
-    if (!report) return null;
-    if (p === 'questions') return open ? <span className="count pencil">{open}</span> : <span className="count ok">✓</span>;
-    if (p === 'journal') return <span className="count">{report.journal.length}</span>;
-    if (p === 'payees') return <span className="count">{report.payees.length}</span>;
-    return null;
-  };
+  const report = books.status === 'ready' ? books.report : undefined;
+  const p = useProgress(report);
+  const link = (s: Step, done?: boolean, count?: number, alert?: boolean) => (
+    <a key={s.page} href={href(s.page)} className={`nav ${page === s.page ? 'on' : ''}`} aria-current={page === s.page ? 'page' : undefined} title={s.title}>
+      <i className="nav-icon">
+        <Icon name={s.icon} size={18} />
+        {done && <span className="nav-done" aria-label="done" />}
+        {alert && count ? <span className="nav-badge num">{count}</span> : null}
+      </i>
+      <span className="nav-label">{s.title}</span>
+      {count !== undefined && <span className={`count ${alert ? 'pencil' : ''}`}>{count}</span>}
+    </a>
+  );
   return (
-    <nav className="side" aria-label="Books">
-      {NAV.map(([head, items]) => (
-        <div key={head} className="side-group">
-          <span className="side-head">{head}</span>
-          {items.map(([p, label, icon]) => (
-            <a key={p} href={href(p)} className={page === p ? 'on' : ''} aria-current={page === p ? 'page' : undefined}>
-              <Icon name={icon} className={p === 'questions' && open ? 'pencil' : ''} />
-              <span>{label}</span>
-              {count(p)}
-            </a>
-          ))}
-        </div>
-      ))}
-      <span className="spacer" />
-      {report && (
-        <div className="side-card">
-          <b>Signed report</b>
-          <span className="num">Block {report.asOf.block.toLocaleString('en-US')}</span>
-          <span className="mono">{report.fingerprint.slice(0, 12)}…</span>
-          <span className="faint">Sort, filter and add notes. The books themselves never change.</span>
-        </div>
-      )}
+    <nav className="side" aria-label="Pages">
+      {FLOW.map((s) => link(s, p.done[s.page], s.page === 'questions' && report && p.open ? p.open : undefined, s.page === 'questions'))}
+      <span className="side-divider" />
+      {LOOKUP.map((s) => link(s, false, report ? (s.page === 'journal' ? report.journal.length : report.payees.length) : undefined))}
+      <span className="side-divider" />
+      {link(CHECK)}
     </nav>
   );
 }
 
-function Toolbar() {
+/** Where you are (All treasuries › treasury › page), search, the guide, light or dark, and the next step. */
+function Toolbar({ page, onSide }: { page: string; onSide: () => void }) {
   const books = useBooks();
+  const report = books.status === 'ready' ? books.report : undefined;
+  const p = useProgress(report);
+  const [theme, toggleTheme] = useTheme();
   const dao = books.report?.dao ?? books.request?.dao;
   const network = books.report?.network ?? books.request?.network ?? 'testnet';
+  const next = report && page !== 'verify' ? nextFor(page, p.done) : null;
+  const title = PAGE_TITLE[page];
   return (
     <header className="toolbar">
+      <button type="button" className="tb-btn" onClick={onSide} aria-label="Show or hide the sidebar" title="Show or hide the sidebar">
+        <Icon name="sidebar" size={18} />
+      </button>
       <a className="logo" href="#/" aria-label="Tickmark home">
-        <Mark size={28} />
+        <Mark size={26} />
       </a>
-      {dao && (
-        <a className="treasury mono" href="#/" title="Open another treasury">
-          {dao}
+      <nav className="crumbs" aria-label="You are here">
+        <a href="#/" className="crumb">
+          All treasuries
         </a>
-      )}
-      {dao && <NetworkPill network={network} />}
-      {books.source === 'demo' && books.status === 'ready' && <span className="faint hide-sm">Demo treasury</span>}
+        {dao && (
+          <>
+            <span className="crumb-sep" aria-hidden="true">
+              ›
+            </span>
+            <a className="treasury mono" href={href('books')} title={`${dao}: open its overview`}>
+              {dao}
+            </a>
+            <NetworkPill network={network} />
+            {books.source === 'demo' && books.status === 'ready' && <span className="faint hide-md">Demo</span>}
+          </>
+        )}
+        {title && (page !== 'books' || !dao) && (
+          <>
+            <span className="crumb-sep hide-md" aria-hidden="true">
+              ›
+            </span>
+            <span className="crumb-now hide-md" aria-current="page">
+              {title}
+            </span>
+          </>
+        )}
+      </nav>
       <span className="spacer" />
       <SearchButton />
-      <MorphButton href={href('close')} label="Close the books" hover="Put it to a vote" icon="tick" size="sm" />
+      <a className="tb-btn" href={href('welcome')} aria-label="Guide: how Tickmark works" title="Guide: how Tickmark works">
+        <Icon name="info" size={17} />
+      </a>
+      <ThemeButton theme={theme} onToggle={toggleTheme} />
+      {next && <MorphButton href={href(next.page)} label={`Next: ${next.title}`} hover={doing(next, p)} icon="arrow" size="sm" />}
     </header>
+  );
+}
+
+/** The web shell: toolbar, the sidebar (open or a rail of icons), and the page. */
+function WebShell({ page, children }: { page: string; children: ReactNode }) {
+  const [open, toggle] = useSideOpen();
+  return (
+    <div className={`web ${open ? 'side-open' : 'side-closed'}`}>
+      <Toolbar page={page} onSide={toggle} />
+      <div className="frame">
+        <Sidebar page={page} />
+        <main className="main">{children}</main>
+      </div>
+    </div>
   );
 }
 
@@ -189,8 +204,12 @@ const TABS: [string, string, string][] = [
   ['books', 'Books', 'overview'],
   ['questions', 'Questions', 'questions'],
   ['journal', 'Journal', 'journal'],
-  ['close', 'Approve', 'close'],
+  ['close', 'Close', 'close'],
+  ['more', 'More', 'more'],
 ];
+
+/** Pages reached from More keep the More tab lit. */
+const UNDER_MORE = new Set(['more', 'payees', 'downloads']);
 
 function TabBar({ page }: { page: string }) {
   const books = useBooks();
@@ -198,15 +217,18 @@ function TabBar({ page }: { page: string }) {
   const open = books.report ? books.report.questions.filter((q) => !answers[q.id]?.answered).length : 0;
   return (
     <nav className="tabbar" aria-label="Tabs">
-      {TABS.map(([p, label, icon]) => (
-        <a key={p} href={href(p)} className={page === p ? 'on' : ''} aria-current={page === p ? 'page' : undefined}>
-          <span className="tab-icon">
-            <Icon name={icon} size={25} />
-            {p === 'questions' && open > 0 && <span className="badge num">{open}</span>}
-          </span>
-          {label}
-        </a>
-      ))}
+      {TABS.map(([p, label, icon]) => {
+        const on = page === p || (p === 'more' && UNDER_MORE.has(page));
+        return (
+          <a key={p} href={href(p)} className={on ? 'on' : ''} aria-current={on ? 'page' : undefined}>
+            <span className="tab-icon">
+              <Icon name={icon} size={25} />
+              {p === 'questions' && open > 0 && <span className="badge num">{open}</span>}
+            </span>
+            {label}
+          </a>
+        );
+      })}
     </nav>
   );
 }
@@ -235,6 +257,11 @@ const BOOK_PAGES = new Set(['books', 'questions', 'journal', 'payees', 'download
 
 function BooksPage({ page, id }: { page: string; id?: string }) {
   const books = useBooks();
+  const fp = books.status === 'ready' ? books.report?.fingerprint : undefined;
+  // Opening the overview or the downloads is that step done.
+  useEffect(() => {
+    if (fp && (page === 'books' || page === 'downloads')) markSeen(fp, page);
+  }, [fp, page]);
   if (books.status === 'loading') return <LoadingBooks />;
   if (books.status === 'error') return <BuildError />;
   switch (page) {
@@ -279,24 +306,33 @@ function BuildError() {
 function Screen() {
   const { page, id } = useRoute();
   const phone = usePhone();
+  const welcomed = useWelcomed();
   const isBooks = BOOK_PAGES.has(page);
 
-  if (page === '') return <Home />;
+  // A first visit to the front page starts with the guide; a link to a treasury's books goes straight to them.
+  if (page === '') return welcomed || new URLSearchParams(location.search).has('dao') ? <Home /> : <Welcome first />;
+  if (page === 'welcome') return <Welcome />;
+  if (page === 'more') {
+    if (!phone) {
+      go('books');
+      return null;
+    }
+    return (
+      <div className="phone with-tabs">
+        <More />
+        <TabBar page={page} />
+      </div>
+    );
+  }
   if (page === 'verify')
     return phone ? (
       <div className="phone">
         <Verify />
       </div>
     ) : (
-      <div className="web">
-        <Toolbar />
-        <div className="frame">
-          <Sidebar page={page} />
-          <main className="main">
-            <Verify />
-          </main>
-        </div>
-      </div>
+      <WebShell page={page}>
+        <Verify />
+      </WebShell>
     );
   if (!isBooks) {
     go('');
@@ -310,15 +346,9 @@ function Screen() {
       {!pushed && <TabBar page={page} />}
     </div>
   ) : (
-    <div className="web">
-      <Toolbar />
-      <div className="frame">
-        <Sidebar page={page} />
-        <main className="main">
-          <BooksPage page={page} id={id} />
-        </main>
-      </div>
-    </div>
+    <WebShell page={page}>
+      <BooksPage page={page} id={id} />
+    </WebShell>
   );
 }
 

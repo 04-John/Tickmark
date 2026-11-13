@@ -6,6 +6,7 @@ import { closingProposal, mayPropose, nearCliCommand } from '../../../core/closi
 import type { DaoPolicy } from '../../../core/dao.ts';
 import type { Network } from '../../../core/rpc.ts';
 import { PhoneNav, useReport } from '../app.tsx';
+import { NextStep } from '../guide.tsx';
 import { closingsOf, policyOf } from '../lib/data.ts';
 import { day, plural, usd } from '../lib/format.ts';
 import { href, useAnswers, usePhone } from '../lib/hooks.ts';
@@ -81,7 +82,7 @@ export function Close() {
   if (approved)
     return (
       <>
-        {phone && <PhoneNav back={href('books')} backLabel="Books" />}
+        {phone && <PhoneNav />}
         <div className={phone ? 'pscroll' : 'page narrow'}>
           <div className="closed-hero">
             <div className="ledger-card">
@@ -122,6 +123,7 @@ export function Close() {
               Back to the books
             </a>
           </div>
+          <NextStep page="close" />
         </div>
       </>
     );
@@ -210,7 +212,7 @@ export function Close() {
   );
 
   const stepper = (
-    <ol className="stepper" aria-label="Steps">
+    <ol className="stepper" aria-label="Where the vote is">
       {STEPS.map((s, i) => (
         <li key={s} className={i < step ? 'done' : i === step ? 'now' : ''} aria-current={i === step ? 'step' : undefined}>
           <span className="num">{i < step ? '✓' : i + 1}</span>
@@ -223,19 +225,17 @@ export function Close() {
   if (phone)
     return (
       <>
-        <PhoneNav back={href('books')} backLabel="Books" title="Close the books" />
+        <PhoneNav title="Close the books" />
         <div className="pscroll">
           <div className="large-head">
-            <span className="eyebrow num">
-              Step {step + 1} of {STEPS.length}
-            </span>
             <h1 className="title-1">{pending ? 'The council is voting.' : 'Sign the closing proposal.'}</h1>
-            <p className="secondary">The council approves this exact report by voting on its fingerprint.</p>
+            <p className="secondary">One vote approves these exact books. Tickmark never signs.</p>
           </div>
           {follow}
           {summary}
           {proposal}
           {!pending && sign}
+          <NextStep page="close" />
         </div>
       </>
     );
@@ -245,11 +245,8 @@ export function Close() {
       {stepper}
       <div className="page-head">
         <div>
-          <span className="eyebrow num">
-            Step {step + 1} of {STEPS.length}
-          </span>
           <h1 className="title-xl">{pending ? 'The council is voting.' : 'Sign the closing proposal.'}</h1>
-          <p className="secondary">The council approves this exact report by voting on its fingerprint. Tickmark never signs: you do, with your own wallet.</p>
+          <span className="secondary">One vote approves these exact books. Tickmark never signs.</span>
         </div>
       </div>
       <div className="split close-split">
@@ -263,6 +260,7 @@ export function Close() {
           {open > 0 && <div className="note-card warn">{plural(open, 'question is', 'questions are')} still open. The council will see that in the summary.</div>}
         </aside>
       </div>
+      <NextStep page="close" />
     </div>
   );
 }

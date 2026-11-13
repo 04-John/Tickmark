@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { CATEGORIES } from '../../core/classify.ts';
 import { useBooks } from './app.tsx';
 import { shortAccount, usd } from './lib/format.ts';
-import { go } from './lib/hooks.ts';
+import { go, useAnswers } from './lib/hooks.ts';
 import { KIND } from './lib/labels.ts';
 import { Icon } from './ui.tsx';
 
@@ -62,12 +62,13 @@ export function Palette() {
   }, [open]);
 
   const report = books.status === 'ready' ? books.report : undefined;
+  const { answers } = useAnswers(report?.fingerprint ?? 'none');
   const items = useMemo<Item[]>(() => {
     const close = (fn: () => void) => () => {
       setOpen(false);
       fn();
     };
-    const openQs = report?.questions.length ?? 0;
+    const openQs = report ? report.questions.filter((q) => !answers[q.id]?.answered).length : 0;
     const actions: Item[] = [
       ...(report
         ? [
@@ -80,6 +81,7 @@ export function Palette() {
         : []),
       { id: 'a:verify', group: 'Quick actions', label: 'Check a report', icon: 'verify', run: close(() => go('verify')) },
       { id: 'a:build', group: 'Quick actions', label: 'Build another treasury', icon: 'search', run: close(() => go('')) },
+      { id: 'a:guide', group: 'Quick actions', label: 'Guide: how Tickmark works', icon: 'info', run: close(() => go('welcome')) },
       ...(books.source === 'live' ? [{ id: 'a:demo', group: 'Quick actions', label: 'Open the demo books', icon: 'overview', run: close(() => (books.openDemo(), go('books'))) }] : []),
     ];
     const q = query.trim().toLowerCase();
@@ -94,7 +96,7 @@ export function Palette() {
           found.push({ id: `j:${e.ref}`, group: 'Journal', label: e.memo || `${shortAccount(e.payee)}, no description`, hint: `${e.ref} · ${usd(e.cents)}`, icon: 'journal', run: close(() => go('journal', e.ref)) });
     }
     return found.slice(0, 40);
-  }, [query, report, books]);
+  }, [query, report, books, answers]);
 
   if (!open) return null;
   const pick = Math.min(active, Math.max(0, items.length - 1));

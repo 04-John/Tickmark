@@ -4,7 +4,7 @@ import type { SignedReport } from '../../../core/report.ts';
 import { PhoneNav, useBooks } from '../app.tsx';
 import { readReportFile, STEPS, verifyReport, type Verdict } from '../lib/data.ts';
 import { elapsed } from '../lib/format.ts';
-import { href, useNow, usePhone } from '../lib/hooks.ts';
+import { href, previousHash, useNow, usePhone } from '../lib/hooks.ts';
 import { Group, Icon, Row, Sk } from '../ui.tsx';
 
 type State = { kind: 'idle' } | { kind: 'running'; report: SignedReport; step: number; started: number } | { kind: 'done'; report: SignedReport; verdict: Verdict } | { kind: 'error'; message: string };
@@ -119,6 +119,9 @@ export function Verify() {
     void fromFile(e.dataTransfer.files[0]);
   };
   const busy = state.kind === 'running';
+  // Back goes where this page was opened from: the front page, or the books (through More).
+  const from = previousHash();
+  const fromBooks = books.status === 'ready' && !!from && from !== '#/' && from !== '#' && from !== '#/welcome';
 
   const inputs = (
     <div className="verify-inputs">
@@ -145,7 +148,7 @@ export function Verify() {
   if (phone)
     return (
       <>
-        <PhoneNav back={books.status === 'ready' ? href('books') : '#/'} backLabel={books.status === 'ready' ? 'Books' : 'Treasuries'} />
+        <PhoneNav back={fromBooks ? href('more') : '#/'} backLabel={fromBooks ? 'More' : 'Treasuries'} />
         <div className="pscroll">
           <div className="large-head">
             <h1 className="large-title">Verify</h1>

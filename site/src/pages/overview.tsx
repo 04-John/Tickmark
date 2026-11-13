@@ -1,83 +1,63 @@
-// The overview: where the money went, by account and by month, the balance check as an equation, and the questions.
+// The overview: four figures, where the money went by account and by month, the questions, and whether it adds up
+// on chain. Web fills the page on a 12-column grid; phones get a summary card and one clear next action.
 // LoadingBooks is the same layout as skeletons, with the run's progress on top.
-import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { Closing } from '../../../core/closing.ts';
 import type { SignedReport } from '../../../core/report.ts';
-import type { Network } from '../../../core/rpc.ts';
 import { PhoneNav, useBooks, useReport } from '../app.tsx';
+import { doing, nextFor, NextStep, useClosedBy, useProgress } from '../guide.tsx';
 import { openPalette } from '../palette.tsx';
-import { closingsOf, STEPS } from '../lib/data.ts';
-import { day, elapsed, month, plural, qty, shortAccount, usd } from '../lib/format.ts';
+import { STEPS } from '../lib/data.ts';
+import { day, elapsed, month, plural, qty, usd } from '../lib/format.ts';
 import { href, useAnswers, useNow, usePhone } from '../lib/hooks.ts';
 import { BALANCE, KIND, LOCATION } from '../lib/labels.ts';
-import { Check, Disclosure, Group, Icon, MorphButton, Pill, Row, Sk, Stamp, Stat } from '../ui.tsx';
+import { Check, Group, Icon, Pill, Row, Sk, Stamp, Stat } from '../ui.tsx';
 
 const SHADES = ['var(--ink)', 'var(--ink-2)', 'var(--ink-3)', 'var(--ink-4)'];
-
-/** The vote that approved these exact books, if any (read for small treasuries and the demo only: it reads every proposal). */
-export function useClosedBy(report: SignedReport): Closing | null {
-  const books = useBooks();
-  const [closing, setClosing] = useState<Closing | null>(null);
-  useEffect(() => {
-    if (books.source !== 'demo' && report.journal.length > 200) return;
-    let live = true;
-    void closingsOf(report.dao, report.network as Network).then((all) => {
-      if (live) setClosing(all.find((c) => c.fingerprint === report.fingerprint && c.status === 'Approved') ?? null);
-    });
-    return () => {
-      live = false;
-    };
-  }, [report, books.source]);
-  return closing;
-}
 
 function summary(report: SignedReport, answered: (id: string) => boolean) {
   const st = report.statement;
   const expense = st.rows.filter((r) => r.section === 'expense').sort((a, b) => b.totalCents - a.totalCents);
   const suspense = st.rows.filter((r) => r.section === 'suspense');
-  const notSpending = st.rows.filter((r) => r.section === 'balance_sheet');
   const paid = st.spendingCents + st.suspenseCents;
   const gaps = report.balances.filter((b) => b.status === 'unexplained_outflow').length;
-  const ties = report.balances.every((b) => b.status === 'ties' || b.status === 'received');
+  const unreadable = report.balances.filter((b) => b.status === 'unreadable').length;
   const done = report.questions.filter((q) => answered(q.id)).length;
-  const kinds = new Map<string, { total: number; open: number }>();
-  for (const q of report.questions) {
-    const k = kinds.get(q.kind) ?? { total: 0, open: 0 };
-    k.total++;
-    if (!answered(q.id)) k.open++;
-    kinds.set(q.kind, k);
-  }
-  return { st, expense, suspense, notSpending, paid, gaps, ties, done, kinds };
+  return { st, expense, suspense, paid, gaps, unreadable, done };
 }
 
-function AccountBars({ s }: { s: ReturnType<typeof summary> }) {
+type Summary = ReturnType<typeof summary>;
+
+/** "Adds up on chain": yes, the gaps, or that some balances could not be read. */
+function addsUp(s: Summary): { value: string; tone: 'ok' | 'pencil' | 'plain' } {
+  if (s.gaps) return { value: plural(s.gaps, 'gap'), tone: 'pencil' };
+  if (s.unreadable) return { value: 'Partly', tone: 'plain' };
+  return { value: 'Yes', tone: 'ok' };
+}
+
+function AccountBars({ s }: { s: Summary }) {
   const max = Math.max(1, ...s.expense.map((r) => r.totalCents), ...s.suspense.map((r) => r.totalCents));
   const bar = (r: (typeof s.expense)[number], i: number, tone?: string) => (
-    <a key={r.code} className={`bar-row ${tone ?? ''}`} href={href('journal', `account:${r.category}`)}>
+    <a key={r.code} className={`bar-row ${tone ?? ''}`} href={href('journal', `account:${r.category}`)} title={`${r.code} · ${plural(r.count, 'line')}`}>
       <div className="bar-label">
-        <span>{r.name}</span>
-        <span className="num strong">{usd(r.totalCents)}</span>
+        <span>{r.section === 'suspense' ? 'Not explained yet' : r.name}</span>
+        <span className="num">{usd(r.totalCents)}</span>
       </div>
       <div className="bar">
         <span style={{ width: `${Math.max(1, (100 * r.totalCents) / max)}%`, background: tone ? undefined : SHADES[Math.min(i, 3)] }} />
       </div>
-      <span className="bar-note num">
-        {r.code} · {plural(r.count, 'line')}
-        {r.unpriced ? ` · ${r.unpriced} without a price` : ''}
-      </span>
     </a>
   );
   return (
     <div className="bars">
       {s.expense.length === 0 && s.suspense.length === 0 && <p className="secondary">No payments in this period.</p>}
       {s.expense.map((r, i) => bar(r, i))}
-      {s.suspense.length > 0 && <div className="sep" />}
       {s.suspense.map((r, i) => bar(r, i, 'pencil'))}
     </div>
   );
 }
 
-function MonthChart({ s }: { s: ReturnType<typeof summary> }) {
+function MonthChart({ s }: { s: Summary }) {
   const rows = [...s.expense, ...s.suspense];
   const totals = s.st.months.map((_, i) => rows.reduce((sum, r) => sum + (r.byMonth[i] ?? 0), 0));
   const max = Math.max(1, ...totals);
@@ -103,236 +83,132 @@ function MonthChart({ s }: { s: ReturnType<typeof summary> }) {
         {months.length > 2 && <span>{month(months[Math.floor(months.length / 2)]!)}</span>}
         {months.length > 1 && <span>{month(months[months.length - 1]!)}</span>}
       </div>
-      <div className="legend">
-        {rows.slice(0, 5).map((r) => (
-          <span key={r.code}>
-            <i style={{ background: color(r) }} />
-            {r.name}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }
 
-function BalanceEquation({ report }: { report: SignedReport }) {
+/** A signed token amount as "+ 8.01" or "− 0.5", with a real minus sign. */
+function signed(value: string | null, sign: '+' | '−'): string {
+  if (value === null) return '?';
+  const negative = value.startsWith('-');
+  const flip = negative ? (sign === '+' ? '−' : '+') : sign;
+  return `${flip} ${qty(negative ? value.slice(1) : value)}`;
+}
+
+/** One balance as a ledger line: opening, out, in, and what the chain holds now, with dotted leaders. */
+function Receipt({ b }: { b: SignedReport['balances'][number] }) {
+  const [label, tone] = BALANCE[b.status];
+  const line = (name: ReactNode, value: string, cls = '', title?: string) => (
+    <div className={`rc-line ${cls}`} title={title}>
+      <span>{name}</span>
+      <i aria-hidden="true" />
+      <b className="num">{value}</b>
+    </div>
+  );
   return (
-    <div className="balances">
-      {report.balances.map((b) => {
-        const [label, tone] = BALANCE[b.status];
-        return (
-          <div key={`${b.token}:${b.location}`} className="balance">
-            <div className="balance-head">
-              <b>
-                {b.symbol} · {LOCATION[b.location] ?? b.location}
-              </b>
-              <Pill tone={tone}>{b.status === 'ties' ? `✓ ${label}` : label}</Pill>
-            </div>
-            <div className="equation">
-              <span>
-                <small>Opening</small>
-                <b className="num">{qty(b.opening)}</b>
-              </span>
-              <i>−</i>
-              <span>
-                <small>Paid out</small>
-                <b className="num">{qty(b.bookedOut)}</b>
-              </span>
-              <i>+</i>
-              <span>
-                <small>Moved in</small>
-                <b className="num">{qty(b.movedIn)}</b>
-              </span>
-              <i>+</i>
-              <span>
-                <small className="link-c">Other in</small>
-                <b className="num">{qty(b.otherIn)}</b>
-              </span>
-              <i>=</i>
-              <span className={`closing t-${tone}`}>
-                <small>{b.closing === null ? 'Closing' : 'On chain'}</small>
-                <b className="num">{qty(b.closing)}</b>
-              </span>
-            </div>
-          </div>
-        );
-      })}
+    <div className="receipt">
+      <div className="rc-head">
+        <b>
+          {b.symbol} <span className="secondary">· {LOCATION[b.location] ?? b.location}</span>
+        </b>
+        <Pill tone={tone}>{b.status === 'ties' ? `✓ ${label}` : label}</Pill>
+      </div>
+      {line('Opening', qty(b.opening))}
+      {line('Paid out', signed(b.bookedOut, '−'))}
+      {b.movedIn !== '0' && line('Moved in', signed(b.movedIn, '+'))}
+      {line('Other money in', signed(b.otherIn, '+'), '', 'Money the chain shows arriving that no proposal explains, like deposits or rewards. Negative means money left unseen.')}
+      {line(b.closing === null ? 'Closing' : 'On chain now', qty(b.closing), `rc-total t-${tone}-text`)}
+    </div>
+  );
+}
+
+function Receipts({ report }: { report: SignedReport }) {
+  return (
+    <div className="receipts">
+      {report.balances.map((b) => (
+        <Receipt key={`${b.token}:${b.location}`} b={b} />
+      ))}
       {report.balances.length === 0 && <p className="secondary">No balances to check.</p>}
-      <p className="secondary small">
-        <b className="link-c">Other in</b> is money the chain shows arriving that no proposal explains, like deposits or rewards. Tickmark solves for it so the books close to the real balance. A negative value means money left unseen.
-      </p>
     </div>
   );
 }
 
-function WebOverview({ report, s, closedBy }: { report: SignedReport; s: ReturnType<typeof summary>; closedBy: Closing | null }) {
-  const books = useBooks();
-  const [copied, setCopied] = useState(false);
-  const share = async () => {
-    try {
-      await navigator.clipboard.writeText(location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch {
-      /* clipboard refused: the address bar already holds the link */
-    }
-  };
+function WebOverview({ report, s, closedBy }: { report: SignedReport; s: Summary; closedBy: Closing | null }) {
+  const total = report.questions.length;
+  const up = addsUp(s);
   return (
-    <div className="page">
-      <div className="page-head">
+    <div className="page overview">
+      <header className="ov-head">
         <div>
-          <span className="secondary num">
-            {day(report.since)} – {day(report.asOf.time)}
-          </span>
           <h1 className="title-xl">Where the money went</h1>
-          <span className="faint num">
-            Read at block {report.asOf.block.toLocaleString('en-US')} · {report.asOf.time.slice(0, 16).replace('T', ', ')} UTC · prices through {report.pricesThrough.near ?? '—'}
-          </span>
+          <p className="ov-sub num">
+            {day(report.since)} – {day(report.asOf.time)}
+          </p>
         </div>
-        <div className="actions">
-          {closedBy && <Stamp id={closedBy.proposalId} block={report.asOf.block} small />}
-          {books.source === 'live' && (
-            <button className="btn btn-gray btn-sm" type="button" onClick={share}>
-              {copied ? 'Link copied' : 'Copy link to these books'}
-            </button>
-          )}
-          <a className="btn btn-gray btn-sm" href={href('downloads')}>
-            Download
-          </a>
-          {s.done < report.questions.length ? (
-            <MorphButton href={href('questions')} label="Review questions" hover={s.st.suspenseCents ? `Explain ${usd(s.st.suspenseCents)}` : `Answer ${report.questions.length - s.done} more`} icon="pencil" size="sm" />
-          ) : (
-            <MorphButton href={href('close')} label="Close the books" hover="Put it to a vote" icon="tick" size="sm" tone="ok" />
-          )}
-        </div>
+        {closedBy && <Stamp id={closedBy.proposalId} block={report.asOf.block} small />}
+      </header>
+
+      <div className="stats strip">
+        <Stat label="Paid out" value={usd(s.paid)} note={plural(report.totals.lines, 'payment')} />
+        <Stat label="Not explained" value={usd(s.st.suspenseCents)} note={s.paid ? `${Math.round((100 * s.st.suspenseCents) / s.paid)}% of paid out` : undefined} tone={s.st.suspenseCents ? 'pencil' : 'plain'} href={href('questions')} />
+        <Stat label="Adds up on chain" value={up.value} tone={up.tone} />
+        <Stat label="Questions answered" value={`${s.done} of ${total}`} href={href('questions')} />
       </div>
 
-      <div className="stats">
-        <Stat label="Spending" value={usd(s.st.spendingCents)} note={plural(report.totals.lines, 'paid line')} />
-        <Stat label="Not explained yet" value={usd(s.st.suspenseCents)} note={s.paid ? `${Math.round((100 * s.st.suspenseCents) / s.paid)}% of paid out · review ›` : 'nothing in Suspense'} tone={s.st.suspenseCents ? 'pencil' : 'plain'} href={href('questions')} />
-        <Stat label="Balances vs chain" value={s.gaps ? plural(s.gaps, 'gap') : 'Tie out'} note={s.gaps ? 'money left that no proposal explains' : 'every token and place'} tone={s.gaps ? 'pencil' : 'ok'} />
-        <Stat
-          label="Questions answered"
-          value={
-            <>
-              {s.done}
-              <span className="dim"> of {report.questions.length}</span>
-            </>
-          }
-          note={<span className="progress-line"><span style={{ width: `${report.questions.length ? (100 * s.done) / report.questions.length : 100}%` }} /></span>}
-          href={href('questions')}
-        />
-      </div>
-
-      <div className="grid-2">
-        <section className="card">
+      <div className="ov-grid">
+        <section className="card ov-accounts">
           <div className="card-head">
             <h2 className="title-3">By account</h2>
-            <span className="faint">USD</span>
           </div>
           <AccountBars s={s} />
-          {s.notSpending.length > 0 && (
-            <p className="secondary small">
-              Not spending: {s.notSpending.map((r) => `${r.name} ${usd(r.totalCents)}`).join(' · ')}
-            </p>
-          )}
         </section>
-        <section className="card">
+        <section className="card ov-months">
           <div className="card-head">
             <h2 className="title-3">By month</h2>
-            <span className="faint">USD</span>
           </div>
           <MonthChart s={s} />
         </section>
+        <ActionItems report={report} />
+        <section className="card ov-balance">
+          <div className="card-head">
+            <h2 className="title-3">Balance check</h2>
+          </div>
+          <Receipts report={report} />
+        </section>
       </div>
 
-      <ActionItems report={report} />
-
-      <nav className="quick" aria-label="Quick actions">
-        <a href={href('journal')}>
-          <Icon name="journal" size={15} /> Open the journal
-        </a>
-        <a href={href('payees')}>
-          <Icon name="payees" size={15} /> Payees
-        </a>
-        <a href={href('downloads')}>
-          <Icon name="downloads" size={15} /> QuickBooks & Xero files
-        </a>
-        <a href={href('close')}>
-          <Icon name="close" size={15} /> Close the books
-        </a>
-        <a href={href('verify')}>
-          <Icon name="verify" size={15} /> Check a report
-        </a>
-      </nav>
-
-      <div className="disclosures">
-        <Disclosure
-          title="Balance check"
-          summary={
-            <>
-              {report.balances.map((b) => `${b.symbol} ${b.location === 'wallet' ? '' : `(${LOCATION[b.location] ?? b.location}) `}`).join(', ')}
-              <span className={s.gaps ? 'pencil' : 'ok'}>{s.gaps ? ` · ${plural(s.gaps, 'gap')}` : ' · ties out'}</span>
-            </>
-          }
-        >
-          <BalanceEquation report={report} />
-        </Disclosure>
-        <Disclosure title="Questions by kind" summary={`${s.kinds.size} kinds · ${report.questions.length - s.done} open`}>
-          <div className="kind-list">
-            {[...s.kinds].map(([kind, k]) => (
-              <a key={kind} className={`list-row ${k.open ? '' : 'done'}`} href={href('questions')}>
-                <span>{KIND[kind as keyof typeof KIND] ?? kind}</span>
-                <span className="num">{k.open ? k.open : '✓'}</span>
-              </a>
-            ))}
-          </div>
-        </Disclosure>
-        <Disclosure title="Payees" summary={`${report.payees.length} · largest ${report.payees[0] ? shortAccount(report.payees[0].account) : '—'}`}>
-          <div className="kind-list">
-            {report.payees.slice(0, 6).map((p) => (
-              <a key={p.account} className="list-row plain" href={href('payees', p.account)}>
-                <span className="mono truncate">{shortAccount(p.account)}</span>
-                <span className="num">{usd(p.cents)}</span>
-              </a>
-            ))}
-          </div>
-        </Disclosure>
-      </div>
+      <NextStep page="books" />
     </div>
   );
 }
 
-/** Open questions as a checklist, like action items: tick one off here, or open it to see the payments it cites. */
+/** Open questions as a checklist: tick one off here, or open it to see the payments it cites. */
 function ActionItems({ report }: { report: SignedReport }) {
   const { answers, save } = useAnswers(report.fingerprint);
   const open = report.questions.filter((q) => !answers[q.id]?.answered);
   const recent = report.questions.filter((q) => answers[q.id]?.answered).slice(0, Math.max(0, 5 - open.length));
   const rows = [...open.slice(0, 5), ...recent];
   return (
-    <section className="card list-card action-items">
+    <section className="card list-card action-items ov-questions">
       <div className="card-head pad-x">
         <h2 className="title-3">
-          Questions to answer <span className="count-chip num">{open.length}</span>
+          Questions <span className="count-chip num">{open.length}</span>
         </h2>
-        <a href={href('questions')}>All questions ›</a>
+        <a href={href('questions')}>All</a>
       </div>
       {rows.map((q) => {
         const done = !!answers[q.id]?.answered;
         return (
           <div key={q.id} className={`action-row ${done ? 'done' : ''}`}>
             <Check checked={done} onChange={() => save(q.id, { answered: !done })} label={`Mark answered: ${q.ask}`} />
-            <a href={href('questions', q.id)} className="action-text">
-              <span className="truncate">{q.ask}</span>
+            <a href={href('questions', q.id)} className="action-text" title={q.ask}>
+              <span className="truncate">{KIND[q.kind]}</span>
             </a>
-            <span className="action-meta mono">
-              {q.payee ? `${/^[0-9a-f]{64}$/.test(q.payee) ? shortAccount(q.payee) : q.payee.split('.')[0]} · ` : ''}
-              {q.cents === null ? '' : usd(q.cents)}
-            </span>
+            <span className="action-meta num">{q.cents === null ? '' : usd(q.cents)}</span>
           </div>
         );
       })}
-      {rows.length === 0 && <p className="secondary pad-x">No questions: every payment was explained and the balances tie out.</p>}
+      {rows.length === 0 && <p className="secondary pad-x">No questions.</p>}
     </section>
   );
 }
@@ -342,15 +218,14 @@ function PhoneActions({ report }: { report: SignedReport }) {
   const open = report.questions.filter((q) => !answers[q.id]?.answered);
   if (!report.questions.length) return null;
   return (
-    <Group title={`Questions to answer · ${open.length}`}>
+    <Group title={`Questions · ${open.length} open`}>
       {(open.length ? open : report.questions).slice(0, 3).map((q) => {
         const done = !!answers[q.id]?.answered;
         return (
           <div key={q.id} className={`row action-row ${done ? 'done' : ''}`}>
             <Check checked={done} onChange={() => save(q.id, { answered: !done })} label={`Mark answered: ${q.ask}`} />
-            <a className="row-two action-text" href={href('questions', q.id)}>
-              <span className="strong">{KIND[q.kind]}</span>
-              <span className="secondary small truncate">{q.ask}</span>
+            <a className="row-main action-text truncate" href={href('questions', q.id)}>
+              {KIND[q.kind]}
             </a>
             {q.cents !== null && <span className="row-value num">{usd(q.cents)}</span>}
           </div>
@@ -358,14 +233,50 @@ function PhoneActions({ report }: { report: SignedReport }) {
       })}
       {open.length > 3 && (
         <Row href={href('questions')}>
-          <span className="row-main link-c">All {open.length} questions</span>
+          <span className="row-main link-c">All {open.length}</span>
         </Row>
       )}
     </Group>
   );
 }
 
-function PhoneOverview({ report, s, closedBy }: { report: SignedReport; s: ReturnType<typeof summary>; closedBy: Closing | null }) {
+/** The treasury in brief: what was paid out, and the three things to know about it. */
+function SummaryCard({ report, s, closedBy }: { report: SignedReport; s: Summary; closedBy: Closing | null }) {
+  const total = report.questions.length;
+  const up = addsUp(s);
+  return (
+    <section className="summary-card" aria-label="These books in brief">
+      <div className="sc-figure">
+        <small>Paid out</small>
+        <b className="num">{usd(s.paid)}</b>
+        <span className="secondary num">
+          {day(report.since)} – {day(report.asOf.time)}
+        </span>
+      </div>
+      <div className="sc-row">
+        <a href={href('questions')}>
+          <small>Not explained</small>
+          <b className={`num ${s.st.suspenseCents ? 'pencil' : ''}`}>{usd(s.st.suspenseCents)}</b>
+        </a>
+        <span>
+          <small>Adds up</small>
+          <b className={up.tone === 'ok' ? 'ok' : up.tone === 'pencil' ? 'pencil' : ''}>{up.value}</b>
+        </span>
+        <a href={href('questions')}>
+          <small>Answered</small>
+          <b className="num">
+            {s.done}/{total}
+          </b>
+        </a>
+      </div>
+      {closedBy && <span className="sc-stamp">✓ Closed by vote #{closedBy.proposalId}</span>}
+    </section>
+  );
+}
+
+function PhoneOverview({ report, s, closedBy }: { report: SignedReport; s: Summary; closedBy: Closing | null }) {
+  const p = useProgress(report);
+  const next = nextFor('books', p.done);
   const share = () => {
     if (navigator.share) void navigator.share({ title: `Tickmark · ${report.dao}`, url: location.href }).catch(() => {});
     else void navigator.clipboard?.writeText(location.href).catch(() => {});
@@ -381,35 +292,24 @@ function PhoneOverview({ report, s, closedBy }: { report: SignedReport; s: Retur
           <Icon name="share" size={22} />
         </button>
       </PhoneNav>
-      <div className="pscroll">
+      <div className="pscroll ph-books">
         <div className="large-head">
           <h1 className="large-title">Books</h1>
           <div className="sub">
-            <span className="mono truncate">{report.dao}</span>
-            <Pill tone={report.network === 'testnet' ? 'warn' : 'ok'}>{report.network === 'testnet' ? 'Testnet' : 'Mainnet'}</Pill>
+            <span className="mono truncate secondary">{report.dao}</span>
           </div>
         </div>
-        {closedBy && (
+        <div className="pad">
+          <SummaryCard report={report} s={s} closedBy={closedBy} />
+        </div>
+        {next && (
           <div className="pad">
-            <Stamp id={closedBy.proposalId} block={report.asOf.block} small />
+            <a className="btn btn-primary ph-next" href={href(next.page)}>
+              <span>{doing(next, p)}</span>
+              <Icon name="arrow" size={18} />
+            </a>
           </div>
         )}
-        <div className="stats pad">
-          <Stat label="Spending" value={usd(s.st.spendingCents)} note={plural(report.totals.lines, 'line')} />
-          <Stat label="Unexplained" value={usd(s.st.suspenseCents)} note="Review ›" tone={s.st.suspenseCents ? 'pencil' : 'plain'} href={href('questions')} />
-          <Stat label="Balances" value={s.gaps ? plural(s.gaps, 'gap') : 'Tie out'} note={s.gaps ? 'Look closer' : 'Checked on chain'} tone={s.gaps ? 'pencil' : 'ok'} />
-          <Stat
-            label="Questions"
-            value={
-              <>
-                {s.done}
-                <span className="dim">/{report.questions.length}</span>
-              </>
-            }
-            note={<span className="progress-line"><span style={{ width: `${report.questions.length ? (100 * s.done) / report.questions.length : 100}%` }} /></span>}
-            href={href('questions')}
-          />
-        </div>
         <PhoneActions report={report} />
         <Group title="Where it went">
           <div className="stack-bar" aria-hidden="true">
@@ -420,52 +320,18 @@ function PhoneOverview({ report, s, closedBy }: { report: SignedReport; s: Retur
           {[...s.expense, ...s.suspense].map((r, i) => (
             <Row key={r.code} href={href('journal', `account:${r.category}`)} className={r.section === 'suspense' ? 'pencil' : ''}>
               <i className="swatch" style={{ background: r.section === 'suspense' ? 'var(--pencil)' : SHADES[Math.min(i, 3)] }} />
-              <span className="row-main truncate">{r.name}</span>
+              <span className="row-main truncate">{r.section === 'suspense' ? 'Not explained yet' : r.name}</span>
               <span className="row-value num">{usd(r.totalCents)}</span>
             </Row>
           ))}
         </Group>
-        {report.balances.map((b) => (
-          <Group key={`${b.token}:${b.location}`} title={`Balance check · ${b.symbol}`}>
-            <Row>
-              <span className="row-main">Opening</span>
-              <span className="row-value num">{qty(b.opening)}</span>
-            </Row>
-            <Row>
-              <span className="row-main">Paid out</span>
-              <span className="row-value num">−{qty(b.bookedOut)}</span>
-            </Row>
-            {b.movedIn !== '0' && (
-              <Row>
-                <span className="row-main">Moved in</span>
-                <span className="row-value num">+{qty(b.movedIn)}</span>
-              </Row>
-            )}
-            <Row>
-              <span className="row-main link-c">Other money in</span>
-              <span className="row-value num">+{qty(b.otherIn)}</span>
-            </Row>
-            <Row className={`strong t-${BALANCE[b.status][1]}-text`}>
-              <span className="row-main">{b.status === 'ties' ? '✓ Closing, on chain' : BALANCE[b.status][0]}</span>
-              <span className="row-value num">{qty(b.closing)}</span>
-            </Row>
-          </Group>
-        ))}
-        <Group title="More">
-          <Row href={href('payees')}>
-            <span className="row-main">Payees</span>
-            <span className="row-value">{report.payees.length}</span>
-          </Row>
-          <Row href={href('downloads')}>
-            <span className="row-main">Downloads</span>
-          </Row>
-          <Row href={href('verify')}>
-            <span className="row-main">Check a report</span>
-          </Row>
-        </Group>
-        <p className="group-foot num">
-          Read at block {report.asOf.block.toLocaleString('en-US')} · {day(report.since)} – {day(report.asOf.time)}
-        </p>
+        <section className="group">
+          <h2 className="group-title">Balance check</h2>
+          <div className="receipt-wrap">
+            <Receipts report={report} />
+          </div>
+        </section>
+        <NextStep page="books" />
       </div>
     </>
   );
@@ -489,24 +355,16 @@ function Progress() {
   const C = 2 * Math.PI * 26;
   return (
     <section className="card progress" aria-live="polite">
-      <svg width="52" height="52" viewBox="0 0 64 64" role="img" aria-label={`Step ${step + 1} of ${STEPS.length}`}>
+      <svg width="40" height="40" viewBox="0 0 64 64" role="img" aria-label={`Step ${step + 1} of ${STEPS.length}`}>
         <circle cx="32" cy="32" r="26" className="ring-bg" strokeWidth="7" fill="none" />
         <circle cx="32" cy="32" r="26" className="ring" strokeWidth="7" fill="none" strokeLinecap="round" strokeDasharray={`${pct * C} ${C}`} transform="rotate(-90 32 32)" />
       </svg>
       <div className="progress-text">
         <b>{STEPS[step]}</b>
         <span className="secondary num">
-          Step {step + 1} of {STEPS.length} · {elapsed(now - books.startedAt)} · usually 20 s to 2 min
+          Step {step + 1} of {STEPS.length} · {elapsed(now - books.startedAt)}
         </span>
       </div>
-      <ol className="chips hide-sm">
-        {STEPS.map((label, i) => (
-          <li key={label} className={i < step ? 'done' : i === step ? 'now' : ''}>
-            {i < step ? '✓ ' : ''}
-            {['Proposals', 'Votes', 'Prices', 'Balances'][i]}
-          </li>
-        ))}
-      </ol>
       <button type="button" className="btn btn-gray btn-sm" onClick={books.cancel}>
         Cancel
       </button>
@@ -518,13 +376,6 @@ export function LoadingBooks() {
   const books = useBooks();
   const phone = usePhone();
   const live = books.source === 'live';
-  const card = (lines: number) => (
-    <div className="stat">
-      <Sk w="50%" h={10} />
-      <Sk w="70%" h={28} r={8} />
-      {lines > 2 && <Sk w="35%" h={10} />}
-    </div>
-  );
   if (phone)
     return (
       <>
@@ -545,11 +396,8 @@ export function LoadingBooks() {
               <Progress />
             </div>
           )}
-          <div className="stats pad">
-            {card(3)}
-            {card(3)}
-            {card(3)}
-            {card(3)}
+          <div className="pad">
+            <Sk h={150} r={14} />
           </div>
           <Group title="Where it went">
             {[60, 45, 52].map((w) => (
@@ -561,38 +409,31 @@ export function LoadingBooks() {
               </div>
             ))}
           </Group>
-          {live && <p className="group-foot">Keep Tickmark open. The books build on this phone from public NEAR data.</p>}
         </div>
       </>
     );
   return (
-    <div className="page" aria-busy="true">
+    <div className="page overview" aria-busy="true">
       {live && <Progress />}
-      <div className="page-head">
+      <div className="ov-head">
         <div className="sk-stack">
+          <Sk w={260} h={26} r={8} />
           <Sk w={180} h={12} />
-          <Sk w={360} h={34} r={8} />
-          <Sk w={300} h={10} />
         </div>
       </div>
-      <div className="stats">
-        {card(3)}
-        {card(3)}
-        {card(3)}
-        {card(3)}
-      </div>
-      <div className="grid-2">
-        <section className="card sk-stack gap-lg">
-          <Sk w={160} h={16} />
+      <Sk h={84} r={12} />
+      <div className="ov-grid">
+        <section className="card sk-stack gap-lg ov-accounts">
+          <Sk w={120} h={14} />
           {[90, 60, 30].map((w) => (
             <div className="sk-stack" key={w}>
               <Sk w="55%" h={10} />
-              <Sk w={`${w}%`} h={10} r={99} />
+              <Sk w={`${w}%`} h={6} r={99} />
             </div>
           ))}
         </section>
-        <section className="card sk-stack gap-lg">
-          <Sk w={140} h={16} />
+        <section className="card sk-stack gap-lg ov-months">
+          <Sk w={120} h={14} />
           <div className="sk-bars">
             {[30, 55, 40, 75, 50, 90, 60, 35, 70].map((h, i) => (
               <Sk key={i} h={`${h}%`} r={4} />
@@ -600,17 +441,6 @@ export function LoadingBooks() {
           </div>
         </section>
       </div>
-      <section className="card sk-stack gap-lg">
-        <Sk w={200} h={16} />
-        {[0, 1, 2, 3].map((i) => (
-          <div className="sk-row" key={i}>
-            <Sk w="12%" h={10} />
-            <Sk w="40%" h={10} />
-            <Sk w="14%" h={10} />
-            <Sk w="10%" h={10} />
-          </div>
-        ))}
-      </section>
     </div>
   );
 }

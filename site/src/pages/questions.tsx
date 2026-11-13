@@ -1,15 +1,17 @@
-// Questions as a work queue: each opens the payments it cites; the treasurer marks it answered and adds a note,
-// kept in this browser and downloadable with the books. The signed report itself never changes.
+// Questions as a quiet work queue. The list is one line per question: what kind, who, how much. Opening one shows
+// the question once, the payments it cites, and a place to answer; what Tickmark saw folds away until it's wanted.
+// Answers are kept in this browser and downloadable with the books. The signed report itself never changes.
 import { useState } from 'react';
 import { centsToString } from '../../../core/books.ts';
 import { decimal, toCsv } from '../../../core/csv.ts';
 import type { Question } from '../../../core/questions.ts';
 import type { SignedReport } from '../../../core/report.ts';
 import { PhoneNav, useReport } from '../app.tsx';
-import { day, shortAccount, usd } from '../lib/format.ts';
+import { NextStep } from '../guide.tsx';
+import { day, usd } from '../lib/format.ts';
 import { go, href, useAnswers, usePhone, type Answer } from '../lib/hooks.ts';
 import { KIND } from '../lib/labels.ts';
-import { Empty, Group, Icon, MorphButton, Pill, Row, Segmented } from '../ui.tsx';
+import { Empty, Group, MorphButton, Row, Segmented } from '../ui.tsx';
 
 type Filter = 'open' | 'answered' | 'all';
 
@@ -35,6 +37,12 @@ export function downloadText(name: string, text: string, type = 'text/csv') {
 
 const prefix = (report: SignedReport) => report.dao.split('.')[0];
 
+/** Who a question is about, short: "studio" for studio.tickmark-demo.testnet, "120bd3f9…" for a hex account. */
+function who(q: Question): string {
+  if (!q.payee) return '';
+  return /^[0-9a-f]{64}$/.test(q.payee) ? `${q.payee.slice(0, 8)}…` : q.payee.split('.')[0]!;
+}
+
 function Detail({ q, report, onNext }: { q: Question; report: SignedReport; onNext?: () => void }) {
   const phone = usePhone();
   const { answers, save } = useAnswers(report.fingerprint);
@@ -48,26 +56,18 @@ function Detail({ q, report, onNext }: { q: Question; report: SignedReport; onNe
   const body = (
     <>
       <div className="q-head">
-        <Pill tone="pencil">
+        <span className="q-kicker">
           {KIND[q.kind]}
-          {q.cents !== null && ` · ${usd(q.cents)} at stake`}
-        </Pill>
+          {q.cents !== null && <span className="num"> · {usd(q.cents)}</span>}
+        </span>
         <h2 className={phone ? 'title-1' : 'title-xl'}>{q.ask}</h2>
-        {q.payee && (
-          <a className="mono small" href={href('payees', q.payee)}>
-            Payee: {shortAccount(q.payee)}
-          </a>
-        )}
       </div>
       {lines.length > 0 && (
-        <Group title="Payments it cites">
+        <Group title="Payments">
           {lines.map((e) => (
             <Row key={e.ref} href={href('journal', e.ref)}>
-              <span className="row-two">
-                <span className="truncate">{e.memo ? `“${e.memo}”` : 'No description'}</span>
-                <span className="secondary small mono">
-                  {e.ref} · #{e.proposalId} · {day(e.date)}
-                </span>
+              <span className="row-main truncate" title={`#${e.proposalId} · ${day(e.date)}`}>
+                {e.memo || 'No description'}
               </span>
               <span className="row-value num">
                 {e.quantity} {e.symbol}
@@ -76,19 +76,22 @@ function Detail({ q, report, onNext }: { q: Question; report: SignedReport; onNe
           ))}
         </Group>
       )}
-      <Group title="What Tickmark saw">
-        {q.facts.map((f, i) => (
-          <Row key={i}>
-            <span className="row-main wrap-text">{f}</span>
-          </Row>
-        ))}
-      </Group>
-      <Group title="Your answer" footer="Kept in this browser and downloaded with the books. The signed report never changes.">
-        <label className="visually-hidden" htmlFor="answer">
+      <div className="q-answer">
+        <label className="q-label" htmlFor="answer">
           Your answer
         </label>
-        <textarea id="answer" className="note" placeholder="What happened? e.g. the second payment was the deposit for invoice 42." value={note} onChange={(e) => setNote(e.target.value)} onBlur={() => note !== (a?.note ?? '') && save(q.id, { note })} />
-      </Group>
+        <textarea id="answer" className="note" placeholder="What happened?" value={note} onChange={(e) => setNote(e.target.value)} onBlur={() => note !== (a?.note ?? '') && save(q.id, { note })} />
+      </div>
+      {q.facts.length > 0 && (
+        <details className="q-facts">
+          <summary>What Tickmark saw</summary>
+          <ul>
+            {q.facts.map((f, i) => (
+              <li key={i}>{f}</li>
+            ))}
+          </ul>
+        </details>
+      )}
     </>
   );
   const actions = a?.answered ? (
@@ -104,10 +107,10 @@ function Detail({ q, report, onNext }: { q: Question; report: SignedReport; onNe
     </>
   ) : (
     <>
-      <MorphButton tone="ok" label="Mark answered" hover={onNext ? 'Answered, next one' : 'Mark it answered'} icon="tick" onClick={answer} />
+      <MorphButton label="Mark answered" hover={onNext ? 'Answered, next one' : 'Mark it answered'} icon="tick" onClick={answer} />
       {onNext && (
-        <button type="button" className={phone ? 'btn btn-plain' : 'btn btn-gray'} onClick={onNext}>
-          Skip for now
+        <button type="button" className="btn btn-plain" onClick={onNext}>
+          Skip
         </button>
       )}
     </>
@@ -115,7 +118,7 @@ function Detail({ q, report, onNext }: { q: Question; report: SignedReport; onNe
   if (phone)
     return (
       <>
-        <div className="pscroll">{body}</div>
+        <div className="pscroll q-phone">{body}</div>
         <div className="bottom-actions">{actions}</div>
       </>
     );
@@ -124,7 +127,7 @@ function Detail({ q, report, onNext }: { q: Question; report: SignedReport; onNe
       {body}
       <div className="actions">
         {actions}
-        <span className="faint small push">{a?.answered ? `Answered ${day(a.at)}` : 'Your notes save as you type'}</span>
+        <span className="faint small push">{a?.answered ? `Answered ${day(a.at)}` : 'Saved in this browser'}</span>
       </div>
     </div>
   );
@@ -155,8 +158,8 @@ export function Questions({ id }: { id?: string }) {
       value={filter}
       onChange={setFilter}
       options={[
-        ['open', `Open · ${openQs.length}`],
-        ['answered', `Answered · ${doneCount}`],
+        ['open', `Open ${openQs.length}`],
+        ['answered', `Answered ${doneCount}`],
         ['all', 'All'],
       ]}
     />
@@ -167,22 +170,18 @@ export function Questions({ id }: { id?: string }) {
     return phone ? (
       <Row key={q.id} href={href('questions', q.id)}>
         <span className={`dot-mark ${isDone ? 'ok' : ''}`} />
-        <span className="row-two">
-          <span className={`strong ${isDone ? 'struck' : ''}`}>{KIND[q.kind]}</span>
-          <span className="secondary small clamp-2">{q.ask}</span>
+        <span className={`row-main truncate ${isDone ? 'struck' : ''}`}>
+          {KIND[q.kind]} <span className="q-who">{who(q)}</span>
         </span>
         {q.cents !== null && <span className="row-value num">{usd(q.cents)}</span>}
       </Row>
     ) : (
-      <a key={q.id} href={href('questions', q.id)} className={`q-item ${current?.id === q.id ? 'on' : ''} ${isDone ? 'done' : ''}`} aria-current={current?.id === q.id ? 'true' : undefined}>
+      <a key={q.id} href={href('questions', q.id)} className={`q-item ${current?.id === q.id ? 'on' : ''} ${isDone ? 'done' : ''}`} aria-current={current?.id === q.id ? 'true' : undefined} title={q.ask}>
         <span className={`dot-mark ${isDone ? 'ok' : ''}`} />
-        <span className="q-item-body">
-          <span className="q-item-top">
-            <span>{KIND[q.kind]}</span>
-            {q.cents !== null && <span className="num">{usd(q.cents)}</span>}
-          </span>
-          <span className="clamp-2">{q.ask}</span>
+        <span className="q-item-label truncate">
+          {KIND[q.kind]} <span className="q-who">{who(q)}</span>
         </span>
+        {q.cents !== null && <span className="q-item-amount num">{usd(q.cents)}</span>}
       </a>
     );
   });
@@ -210,11 +209,8 @@ export function Questions({ id }: { id?: string }) {
             </div>
           </div>
           <div className="pad">{filterControl}</div>
-          {shown.length ? (
-            <Group footer="Answers stay on this device.">{list}</Group>
-          ) : (
-            <Empty title={filter === 'open' ? 'All answered' : 'Nothing here yet'}>{filter === 'open' ? 'Every question has an answer. Close the books when the council is ready.' : undefined}</Empty>
-          )}
+          {shown.length ? <Group>{list}</Group> : <Empty title={filter === 'open' ? 'All answered' : 'Nothing here yet'} />}
+          {openQs.length === 0 && <NextStep page="questions" />}
         </div>
       </>
     );
@@ -227,18 +223,25 @@ export function Questions({ id }: { id?: string }) {
           <div className="card-head">
             <h1 className="title-xl">Questions</h1>
             <span className="faint num">
-              {doneCount} of {report.questions.length} done
+              {doneCount} of {report.questions.length}
             </span>
           </div>
           {filterControl}
         </div>
         {list}
         {shown.length === 0 && <Empty title={filter === 'open' ? 'All answered' : 'Nothing here yet'} />}
-        <button type="button" className="btn btn-gray btn-sm export" onClick={exportAnswers}>
-          <Icon name="downloads" size={14} /> Download answers
+        <button type="button" className="text-btn q-export" onClick={exportAnswers}>
+          Download answers
         </button>
       </section>
-      <main className="q-main">{current ? <Detail key={current.id} q={current} report={report} onNext={openQs.length > 1 || !done(current) ? () => next(current) : undefined} /> : <Empty title="No questions">Every payment was explained and the balances tie out.</Empty>}</main>
+      <main className="q-main">
+        {current ? <Detail key={current.id} q={current} report={report} onNext={openQs.length > 1 || !done(current) ? () => next(current) : undefined} /> : <Empty title="No questions">Every payment was explained and the balances add up.</Empty>}
+        {openQs.length === 0 && report.questions.length > 0 && (
+          <div className="q-done">
+            <NextStep page="questions" />
+          </div>
+        )}
+      </main>
     </div>
   );
 }

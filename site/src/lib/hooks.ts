@@ -21,11 +21,16 @@ function direction(from: Route, to: Route): 'forward' | 'back' | 'across' {
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+let lastHash = '';
+/** The hash of the screen before this one in this visit ('' on a fresh load), so "Close" can go back to it. */
+export const previousHash = () => lastHash;
+
 export function useRoute(): Route {
   const [route, setRoute] = useState(readRoute);
   useEffect(() => {
     let current = readRoute();
-    const on = () => {
+    const on = (e: HashChangeEvent) => {
+      lastHash = new URL(e.oldURL).hash;
       const next = readRoute();
       const apply = () => {
         setRoute(next);
@@ -63,6 +68,68 @@ export function useMedia(query: string): boolean {
 
 /** Phones get the iOS-style layout: large titles, inset lists, a tab bar and sheets. */
 export const usePhone = () => useMedia('(max-width: 760px)');
+
+// ---------------------------------------------------------------- preferences kept in this browser
+
+const prefs = new Map<string, string>();
+function readPref(key: string): string | null {
+  if (prefs.has(key)) return prefs.get(key)!;
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function writePref(key: string, value: string) {
+  prefs.set(key, value);
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // private windows can refuse storage; the choice then lasts for this visit only
+  }
+}
+
+export type Theme = 'light' | 'dark';
+
+/** Light or dark. index.html sets it before the first paint; a choice made here is remembered, else the system decides. */
+export function useTheme(): [Theme, () => void] {
+  const [theme, setTheme] = useState<Theme>(() => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'));
+  useEffect(() => {
+    const m = matchMedia('(prefers-color-scheme: dark)');
+    const follow = () => {
+      if (readPref('tickmark:theme')) return; // the visitor chose; the system no longer decides
+      const next: Theme = m.matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = next;
+      setTheme(next);
+    };
+    m.addEventListener('change', follow);
+    return () => m.removeEventListener('change', follow);
+  }, []);
+  const toggle = useCallback(() => {
+    const next: Theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    writePref('tickmark:theme', next);
+    setTheme(next);
+  }, []);
+  return [theme, toggle];
+}
+
+const sideListeners = new Set<() => void>();
+/** Whether the web sidebar shows its labels or only its icons. Icons only until the visitor opens it. */
+export function useSideOpen(): [boolean, () => void] {
+  const open = useSyncExternalStore(
+    (cb) => {
+      sideListeners.add(cb);
+      return () => sideListeners.delete(cb);
+    },
+    () => readPref('tickmark:side') === 'open',
+  );
+  const toggle = useCallback(() => {
+    writePref('tickmark:side', readPref('tickmark:side') === 'open' ? 'closed' : 'open');
+    sideListeners.forEach((l) => l());
+  }, []);
+  return [open, toggle];
+}
 
 export function useNow(active: boolean, every = 1000): number {
   const [now, setNow] = useState(Date.now());

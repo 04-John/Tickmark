@@ -61,7 +61,24 @@ const ICONS: Record<string, string> = {
   file: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5',
   external: 'M7 17 17 7M9 7h8v8',
   x: 'M6 6l12 12M18 6 6 18',
+  info: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 11v5.5M12 7.5h.01',
+  more: 'M5 11a1 1 0 1 0 0 2a1 1 0 1 0 0-2M12 11a1 1 0 1 0 0 2a1 1 0 1 0 0-2M19 11a1 1 0 1 0 0 2a1 1 0 1 0 0-2',
+  home: 'M4 11 12 4l8 7M6 9.5V20h12V9.5',
+  arrow: 'M5 12h14M13 6l6 6-6 6',
+  sidebar: 'M4 5h16v14H4zM9.5 5v14',
+  sun: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4',
+  moon: 'M20 14.5A8.5 8.5 0 0 1 9.5 4 8 8 0 1 0 20 14.5z',
 };
+
+/** Light and dark: one button, the icon of the mode it switches to. */
+export function ThemeButton({ theme, onToggle, className = 'tb-btn' }: { theme: 'light' | 'dark'; onToggle: () => void; className?: string }) {
+  const to = theme === 'dark' ? 'light' : 'dark';
+  return (
+    <button type="button" className={className} onClick={onToggle} aria-label={`Switch to ${to} mode`} title={`Switch to ${to} mode`}>
+      <Icon name={to === 'dark' ? 'moon' : 'sun'} size={17} />
+    </button>
+  );
+}
 
 export function Icon({ name, size = 18, className = '' }: { name: keyof typeof ICONS | string; size?: number; className?: string }) {
   return (
@@ -71,9 +88,32 @@ export function Icon({ name, size = 18, className = '' }: { name: keyof typeof I
   );
 }
 
-export function Stat({ label, value, note, tone = 'plain', href }: { label: string; value: ReactNode; note?: ReactNode; tone?: Tone; href?: string }) {
+/** Progress as a ring, like Apple's activity rings: share of 0..1. */
+export function Ring({ value, size = 44 }: { value: number; size?: number }) {
+  const r = 18;
+  const c = 2 * Math.PI * r;
+  const v = Math.max(0, Math.min(1, value));
+  return (
+    <svg className="ring-mini" width={size} height={size} viewBox="0 0 44 44" aria-hidden="true">
+      <circle cx="22" cy="22" r={r} className="ring-track" strokeWidth="5" fill="none" />
+      {v > 0 && <circle cx="22" cy="22" r={r} className="ring-fill" strokeWidth="5" fill="none" strokeLinecap="round" strokeDasharray={`${v * c} ${c}`} transform="rotate(-90 22 22)" />}
+    </svg>
+  );
+}
+
+/** An auditor's tick, drawn in one stroke: the mark that something was checked. */
+export function TickDrawn({ size = 46 }: { size?: number }) {
+  return (
+    <svg className="tick-drawn" width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M12 34Q19 39 25 48Q36 26 54 13" fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" pathLength={1} />
+    </svg>
+  );
+}
+
+export function Stat({ label, value, note, tone = 'plain', href, aside }: { label: string; value: ReactNode; note?: ReactNode; tone?: Tone; href?: string; aside?: ReactNode }) {
   const body = (
     <>
+      {aside && <span className="stat-aside">{aside}</span>}
       <span className="stat-label">{label}</span>
       <span className="stat-value num">{value}</span>
       {note !== undefined && <span className="stat-note">{note}</span>}
