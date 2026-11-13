@@ -4777,6 +4777,28 @@ a.stat:hover {
   backdrop-filter: none;
 }
 
+/* home: the one-line definition under the hero; the not-a-DAO notice */
+.hero-aside {
+  margin: -4px auto 0;
+  max-width: 560px;
+  font-size: 14px;
+  color: var(--dim);
+}
+.notice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+.notice-card p {
+  margin: 0;
+  max-width: 62ch;
+  line-height: 1.55;
+}
+.notice-card .actions {
+  margin-top: 8px;
+}
+
 /* the close-the-books stepper: finished stages are plain with a green tick, the current one is marked */
 .stepper li,
 .web .stepper li:not(.done):not(.now) {

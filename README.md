@@ -1,10 +1,10 @@
 # Tickmark
 
-Books and audit questions for any NEAR treasury, read straight from the chain.
+See where a NEAR DAO's money went, and what nobody has explained. Books and audit questions for any NEAR treasury, read straight from the chain.
 
-Point Tickmark at a Sputnik DAO or Trezu treasury. It lists every payment the treasury made, dates each one by the vote that paid it, values it in US dollars on that day, and places it in a chart of accounts with the reason why. It checks the balances against the chain and lists the questions an auditor would ask the treasurer. It also writes files that QuickBooks, Xero or a spreadsheet can open. Built at NEAR HACKATHON (November 2026).
+A DAO is a group that shares one wallet on NEAR and approves each payment by vote. Point Tickmark at a Sputnik DAO or Trezu treasury. It lists every payment the treasury made, dates each one by the vote that paid it, values it in US dollars on that day, and places it in a chart of accounts with the reason why. It checks the balances against the chain and lists the questions an auditor would ask the treasurer. It also writes files that QuickBooks, Xero or a spreadsheet can open. Built at NEAR HACKATHON (November 2026).
 
-**Live:** https://04-john.github.io/Tickmark/ opens the demo treasury's books at once, and builds any treasury in your browser.
+**Live:** https://04-john.github.io/Tickmark/ starts with a three-screen guide, opens an example treasury's books at once, and looks up any DAO in your browser (type just `daocubator`).
 
 ## Why
 
@@ -207,17 +207,20 @@ npm run site:build     # Vite + React build of site/ (bundles core/ for the brow
 npm run site:serve     # serves the built site/dist on http://localhost:5180
 ```
 
-Open `http://localhost:5180/?dao=daocubator.sputnik-dao.near`.
+Open `http://localhost:5180/`, or `http://localhost:5180/?dao=daocubator` for one treasury.
 
 **See:**
-- the demo treasury's books the moment the page opens (`demo/report.json`), and any treasury built live behind skeleton screens that fill in step by step;
-- an overview of where the money went (by account, by month), the balance check drawn as an equation, and the questions counted by kind;
-- the questions as a work queue: each opens the payments it cites, and answers are kept in your browser and downloaded with the books (the signed report never changes);
-- a searchable journal, grouped by payee, month or account, with one line's words, evidence, paying transaction and both entries;
-- a page per payee, every download from `--out` with a preview, the close-the-books flow, and "Check a report";
-- on phones, its own layout: large titles, inset lists, a tab bar and sheets.
+- on a first visit, a three-screen guide: what Tickmark is, the four steps, and where to start (the example treasury, a DAO's name, or a report someone sent). Its numbers come from `demo/report.json` and `data/measure`. It opens again from the ⓘ button;
+- the example treasury's books the moment you ask (`demo/report.json`), and any treasury built live behind a progress bar (step 2 of 4, elapsed time) and skeleton screens;
+- the four steps in order in the sidebar: **Overview → Questions → Close the books → Downloads**. A green dot marks a step that is done, from real state: the page was opened, every question has an answer, or a council vote approved these books. Every page ends with the next step, and the toolbar shows where you are and what comes next;
+- the overview: four figures (paid out, not explained, adds up on chain, questions answered), spending by account and by month, the open questions, and the balance check as ledger lines;
+- the questions as a quiet work queue, one line each (what kind, who, how much). Opening one shows the question, the payments it cites and a box for your answer; answers stay in your browser and download with the books (the signed report never changes);
+- a searchable journal grouped by payee, month or account, a page per payee, every download from `--out` with a preview, the close-the-books flow drafted from the DAO's real policy, and "Check a report";
+- a sidebar that folds to icons, light and dark mode (yours, else the system's), and ⌘K / Ctrl K search over questions, payees and journal lines;
+- on phones, its own layout: a summary card, one clear next action, a tab bar with **More**, and quiet inset lists;
+- a personal wallet, another contract or a misspelled name gets a plain answer saying what it is and what Tickmark reads, not an error.
 
-`?dao=…&network=…&since=…&block=…` opens exact books, block for block.
+`?dao=…&network=…&since=…&block=…` opens exact books, block for block. A name with no dot is completed: `daocubator` means `daocubator.sputnik-dao.near` (`.sputnik-v2.testnet` on testnet).
 
 Published at https://04-john.github.io/Tickmark/ by [.github/workflows/pages.yml](.github/workflows/pages.yml). On every push, that workflow runs `npm run check` and builds the site.
 
@@ -236,6 +239,7 @@ Only money that moved counts as paid: the proposal is `Approved`, and for bulk l
 
 ## Known limits
 
+- **Personal wallets** are not read yet. Tickmark explains a payment from the DAO proposal that approved it; a personal wallet's payments carry no such record. Entering one says so (`alice.near is a personal wallet, not a DAO treasury`, on the website and the command line). A wallet mode, which would sort what the chain can tell (swaps, staking, exchanges) and list the rest for the owner to explain, is the next feature.
 - **Money coming in** is not itemized. The balance check derives its total per token.
 - **Cross-chain payments** signed through chain signatures (`v1.signer`) are not decoded. If they move a balance the books touch, they show up as a balance gap.
 - **Staked NEAR** is booked when staked; staking rewards are not read.
@@ -258,10 +262,16 @@ test/       unit tests with fictional fixtures in real on-chain shapes
 ## Disclosure
 
 - **Other project.** The same author also entered **Ownling**, an AI pet that owns itself (https://github.com/04-John/Ownling). The two projects are independent.
-- **AI-written code.** Most of the code was written with Claude Code (Anthropic), directed and reviewed by the author.
-- **Libraries.** TypeScript 7.0.2 and @types/node, for type checking only. Runtime code uses only Node.js and browser built-ins.
+- **AI-written code.** Most of the code was written with Claude Code (Anthropic), directed and reviewed by the author. The website's first React version was drafted in a separate Claude session from the author's brief and applied by the author; later rounds (guide, navigation, minimal design) followed the author's review.
+- **Libraries.**
+  - `core/` (everything that reads the chain and makes the books) uses only Node.js and browser built-ins.
+  - `@nearai/inference-sdk` 0.2.1: the NEAR AI Cloud client for `--suggest` (attestation, end-to-end encryption, signature checks).
+  - React 19.2.9 and Vite 8.3.3: the website and its build.
+  - near-api-js 7.4.0: only in `scripts/demo-testnet.ts`, to create and vote on the testnet demo DAO.
+  - TypeScript 7.0.2 and @types/node, @types/react, @types/react-dom: type checking.
+  - Fonts: the website loads Inter and IBM Plex Mono from Google Fonts; on Apple devices it uses the system font.
 - **Data sources.**
-  - NEAR RPC: https://rpc.mainnet.fastnear.com, with archival reads from https://archival-rpc.mainnet.fastnear.com;
+  - NEAR RPC: https://rpc.mainnet.fastnear.com (testnet: https://test.rpc.fastnear.com), with archival reads from https://archival-rpc.mainnet.fastnear.com;
   - FastNear's transaction index (https://tx.main.fastnear.com) for the approving votes;
   - CoinGecko's free API for prices.
 - **Test data.** Accounts and memos in the test fixtures are fictional.

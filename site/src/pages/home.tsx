@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { SignedReport } from '../../../core/report.ts';
 import type { Network } from '../../../core/rpc.ts';
 import { useBooks } from '../app.tsx';
-import { demoReport, measure, priceRange, type Measure } from '../lib/data.ts';
+import { daoName, demoReport, measure, priceRange, type Measure } from '../lib/data.ts';
 import { go, href, usePhone, useTheme } from '../lib/hooks.ts';
 import { usd } from '../lib/format.ts';
 import { Chevron, Group, Icon, Logo, Mark, MorphButton, Row, Segmented, Sk, Stat, ThemeButton } from '../ui.tsx';
@@ -30,7 +30,7 @@ function useBuild() {
   const books = useBooks();
   return (dao: string, network: Network, since?: string) => {
     if (!dao.trim()) return;
-    books.build({ dao: dao.trim().toLowerCase(), network, since: since || undefined });
+    books.build({ dao: daoName(dao, network), network, since: since || undefined });
     go('books');
   };
 }
@@ -54,8 +54,8 @@ export function BuildForm({ range, compact, onStart }: { range: { from: string; 
   return (
     <form className={`build ${compact ? 'compact' : ''}`} onSubmit={submit} autoComplete="off">
       <label className="field">
-        <span>Sputnik DAO or Trezu treasury</span>
-        <input className="input mono" required spellCheck={false} placeholder="name.sputnik-dao.near" value={dao} onChange={(e) => setDao(e.target.value)} />
+        <span>DAO name</span>
+        <input className="input" required spellCheck={false} autoCapitalize="off" placeholder="e.g. daocubator" value={dao} onChange={(e) => setDao(e.target.value)} />
       </label>
       <div className="build-row">
         <Segmented<Network>
@@ -72,10 +72,10 @@ export function BuildForm({ range, compact, onStart }: { range: { from: string; 
           <input className="input input-sm" type="date" min={range?.from} max={range?.to} value={since || range?.from || ''} onChange={(e) => setSince(e.target.value)} />
         </label>
         <button className="btn btn-primary" type="submit">
-          Build the books
+          Look it up
         </button>
       </div>
-      <p className="hint">Runs in your browser on public NEAR data. 20 seconds to 2 minutes. Nothing is signed.</p>
+      <p className="hint">Any Sputnik DAO or Trezu treasury. Free, runs in your browser, ready in under 2 minutes.</p>
     </form>
   );
 }
@@ -182,7 +182,7 @@ function WebHome() {
           <span className="home-nav-end">
             <ThemeButton theme={theme} onToggle={toggleTheme} />
             <button type="button" className="btn btn-primary btn-sm" onClick={() => buildRef.current?.scrollIntoView({ behavior: 'smooth' })}>
-              Build books
+              Look up a DAO
             </button>
           </span>
         </div>
@@ -191,15 +191,16 @@ function WebHome() {
       <section className="hero wrap">
         <span className="eyebrow">Built at NEAR HACKATHON</span>
         <h1>
-          Books for every NEAR DAO.
+          See where a DAO’s money went.
           <br />
-          <span className="muted">Checked against the chain.</span>
+          <span className="muted">And what nobody has explained.</span>
         </h1>
-        <p className="lede">Every payment dated by the vote that paid it, valued at that day’s price, placed in an account. With the questions an auditor would ask.</p>
+        <p className="lede">Type a DAO’s name. Tickmark reads every payment it made from the NEAR blockchain, sorts them into plain categories like pay and grants, and lists the ones no one has explained yet.</p>
+        <p className="hero-aside">A DAO is a group that shares one wallet on NEAR and approves each payment by vote.</p>
         <div className="actions center">
-          <MorphButton label="Open the demo books" hover="Real books, no wait" icon="arrow" size="lg" onClick={() => openDemo(books)} />
+          <MorphButton label="See an example" hover="Opens instantly" icon="arrow" size="lg" onClick={() => openDemo(books)} />
           <button type="button" className="btn btn-plain btn-lg" onClick={() => buildRef.current?.scrollIntoView({ behavior: 'smooth' })}>
-            Build any treasury ›
+            Look up a DAO ›
           </button>
         </div>
       </section>
@@ -218,8 +219,8 @@ function WebHome() {
       <section className="wrap section" ref={buildRef as never}>
         <div className="card build-card">
           <div>
-            <h2 className="display-3">Build any treasury.</h2>
-            <p className="secondary">Pick a treasury, or try one of these.</p>
+            <h2 className="display-3">Look up a DAO.</h2>
+            <p className="secondary">Type its name, or try one of these.</p>
             <div className="examples">
               {EXAMPLES.map(([dao, name]) => (
                 <button key={dao} type="button" className="link" onClick={() => build(dao, 'mainnet', range?.from)}>
@@ -283,8 +284,8 @@ function PhoneHome() {
       </div>
       <div className="pscroll">
         <div className="large-head">
-          <h1 className="large-title">Treasuries</h1>
-          <p className="secondary">Clear books for any NEAR DAO treasury, checked against the chain.</p>
+          <h1 className="large-title">Tickmark</h1>
+          <p className="secondary">See where a DAO’s money went, and what nobody has explained. A DAO is a group that shares one wallet on NEAR and votes on each payment.</p>
         </div>
         <div className="pad">
           <button type="button" className="demo-card" onClick={() => openDemo(books)}>
@@ -292,8 +293,8 @@ function PhoneHome() {
               <Mark size={44} />
               <span className="pill t-warn-ink">Testnet</span>
             </div>
-            <b>See real books in one tap</b>
-            <span className="demo-sub">The demo treasury, approved by vote. Opens instantly.</span>
+            <b>See an example</b>
+            <span className="demo-sub">A real DAO on NEAR’s test network. Opens instantly.</span>
             <div className="demo-stats">
               {demo ? (
                 <>
@@ -317,7 +318,7 @@ function PhoneHome() {
           </button>
         </div>
         <section className="group">
-          <h2 className="group-title">Build a treasury’s books</h2>
+          <h2 className="group-title">Look up a DAO</h2>
           <div className="build-card-phone">
             <BuildForm range={range} compact />
           </div>

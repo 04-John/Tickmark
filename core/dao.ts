@@ -1,10 +1,42 @@
 // Read a Sputnik DAO (or Trezu treasury) from the chain: proposals, policy, and Trezu bulk payment lists.
 import { decodeProposal, isRawAmount, normalizeToken } from './decode.ts';
-import type { ViewClient } from './rpc.ts';
+import { FinalError } from './http.ts';
+import { ViewError, type ViewClient } from './rpc.ts';
 import type { Movement, Proposal } from './types.ts';
 import { nsToMs } from './units.ts';
 
 const PAGE = 100;
+
+/**
+ * The account asked for is not a Sputnik DAO: a personal wallet (no contract), some other contract, or no account
+ * at all on that network. Tickmark reads DAO treasuries, whose payments each come with a proposal saying why.
+ */
+export class NotADao extends FinalError {
+  readonly account: string;
+  readonly kind: 'wallet' | 'contract' | 'missing';
+  constructor(account: string, kind: NotADao['kind']) {
+    super(
+      kind === 'wallet'
+        ? `${account} is a personal wallet, not a DAO treasury. Tickmark reads Sputnik DAO and Trezu treasuries.`
+        : kind === 'contract'
+          ? `${account} is a contract, but not a Sputnik DAO. Tickmark reads Sputnik DAO and Trezu treasuries.`
+          : `There is no account called ${account} on this network.`,
+    );
+    this.name = 'NotADao';
+    this.account = account;
+    this.kind = kind;
+  }
+}
+
+/** When a view call on `account` failed because it is not a DAO, the reason; otherwise null. */
+export function notADao(error: unknown, account: string): NotADao | null {
+  if (!(error instanceof ViewError)) return null;
+  const m = error.message;
+  if (/CodeDoesNotExist|NO_CONTRACT_CODE|contract code.*not.*deployed/i.test(m)) return new NotADao(account, 'wallet');
+  if (/UNKNOWN_ACCOUNT|AccountDoesNotExist|does not exist while viewing/i.test(m)) return new NotADao(account, 'missing');
+  if (/MethodNotFound|MethodResolveError/i.test(m)) return new NotADao(account, 'contract');
+  return null;
+}
 
 /** Run `fn` over `items` with at most `limit` calls in flight, keeping order. */
 export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
@@ -25,7 +57,12 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, in
  * Pages backwards from the newest id, so a DAO with years of history costs only the pages in range.
  */
 export async function fetchProposals(rpc: ViewClient, dao: string, sinceMs = 0): Promise<Proposal[]> {
-  const count = await rpc.view<number>(dao, 'get_last_proposal_id');
+  let count: number;
+  try {
+    count = await rpc.view<number>(dao, 'get_last_proposal_id');
+  } catch (error) {
+    throw notADao(error, dao) ?? error;
+  }
   const kept: Proposal[] = [];
   let hi = count;
   while (hi > 0) {

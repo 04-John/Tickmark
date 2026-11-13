@@ -108,20 +108,20 @@ export function Welcome({ first }: { first?: boolean }) {
         <h1 ref={heading} tabIndex={-1}>
           Welcome to Tickmark
         </h1>
-        <p>Clear books for any NEAR DAO treasury, checked against the chain. Nothing to sign up for or install.</p>
+        <p>See where a DAO’s money went, and what nobody has explained yet. A DAO is a group that shares one wallet on NEAR and approves each payment by vote.</p>
       </div>
       <ul className="wel-features">
         <Feature icon="overview" title="See where the money went">
-          Every payment, dated by the vote that paid it and priced in dollars on that day.
+          Every payment the DAO made, sorted into plain categories like pay and grants, in dollars.
         </Feature>
-        <Feature icon="questions" title="Get an auditor’s questions">
-          Anything unexplained or unusual becomes a plain question for you to answer.
+        <Feature icon="questions" title="Spot what needs explaining">
+          Payments with no reason given, possible double payments, people approving their own pay.
         </Feature>
-        <Feature icon="close" title="Approve the books by vote">
-          The council approves them with one ordinary DAO vote. No money moves.
+        <Feature icon="close" title="Approve it together">
+          The DAO’s members approve the final books with one ordinary vote. No money moves.
         </Feature>
-        <Feature icon="verify" title="Check it, don’t trust it">
-          Tickmark only reads public data, in your browser. Anyone can rebuild the same books.
+        <Feature icon="verify" title="Check it yourself">
+          Everything comes from the public blockchain, in your browser. Anyone can rebuild the same books.
         </Feature>
       </ul>
       {m && share !== null && (
@@ -169,13 +169,13 @@ export function Welcome({ first }: { first?: boolean }) {
         <p>You can open this guide again any time from {phone ? 'More' : 'Guide, at the top of every page'}.</p>
       </div>
       <div className="wel-choices">
-        <Choice icon="overview" title="Open the demo books" tag="Opens instantly" onClick={startDemo} primary>
-          A real treasury on NEAR’s test network, with problems planted on purpose.
+        <Choice icon="overview" title="See an example" tag="Opens instantly" onClick={startDemo} primary>
+          A real DAO on NEAR’s test network, with problems planted on purpose.
           {demo ? ` Tickmark raises ${plural(demo.questions.length, 'question')} about it.` : ''}
         </Choice>
         <div className={`choice-wrap ${building ? 'open' : ''}`}>
-          <Choice icon="search" title="Build a treasury’s books" onClick={() => setBuilding(!building)} expanded={building}>
-            Type a Sputnik DAO or Trezu treasury name. It takes 20 seconds to 2 minutes.
+          <Choice icon="search" title="Look up a DAO" onClick={() => setBuilding(!building)} expanded={building}>
+            Type a DAO’s name, like daocubator. Ready in under 2 minutes.
           </Choice>
           {building && (
             <div className="choice-build">

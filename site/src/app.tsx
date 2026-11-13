@@ -1,8 +1,9 @@
 // The app: which books are open (the demo, or a treasury built live), the hash route, and the two shells.
 // Web gets a toolbar and a source-list sidebar; phones get an iOS-style tab bar and each page draws its own nav bar.
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { NotADao } from '../../core/dao.ts';
 import type { SignedReport } from '../../core/report.ts';
-import { buildBooks, demoReport, type RunRequest } from './lib/data.ts';
+import { buildBooks, daoName, demoReport, type RunRequest } from './lib/data.ts';
 import { go, href, useAnswers, usePhone, useRoute, useSideOpen, useTheme } from './lib/hooks.ts';
 import { Icon, Mark, MorphButton, NetworkPill, ThemeButton } from './ui.tsx';
 import { Palette, SearchButton, usePaletteShortcut } from './palette.tsx';
@@ -29,6 +30,8 @@ export type BooksState = {
   message: string;
   startedAt: number;
   error?: string;
+  /** Set when the name asked for is not a DAO treasury (a personal wallet, another contract, or no account). */
+  notDao?: NotADao['kind'];
 };
 
 type BooksApi = BooksState & { build: (req: RunRequest) => void; openDemo: () => void; cancel: () => void };
@@ -41,10 +44,11 @@ export const useReport = () => useBooks().report!;
 
 function requestFromUrl(): RunRequest | null {
   const p = new URLSearchParams(location.search);
-  const dao = p.get('dao')?.trim().toLowerCase();
+  const network = p.get('network') === 'testnet' ? 'testnet' : 'mainnet';
+  const dao = daoName(p.get('dao') ?? '', network);
   if (!dao) return null;
   const block = Number(p.get('block'));
-  return { dao, network: p.get('network') === 'testnet' ? 'testnet' : 'mainnet', since: p.get('since') ?? undefined, block: Number.isSafeInteger(block) && block > 0 ? block : undefined };
+  return { dao, network, since: p.get('since') ?? undefined, block: Number.isSafeInteger(block) && block > 0 ? block : undefined };
 }
 
 function urlFor(req: RunRequest | null, block?: number): string {
@@ -79,7 +83,7 @@ function BooksProvider({ children }: { children: ReactNode }) {
         history.replaceState(null, '', urlFor(req, report.asOf.block));
         setState((s) => ({ ...s, status: 'ready', report }));
       })
-      .catch((e: Error) => id === run.current && setState((s) => ({ ...s, status: 'error', error: e.message })));
+      .catch((e: Error) => id === run.current && setState((s) => ({ ...s, status: 'error', error: e.message, notDao: e instanceof NotADao ? e.kind : undefined })));
   }, []);
 
   const cancel = useCallback(() => {
@@ -280,8 +284,38 @@ function BooksPage({ page, id }: { page: string; id?: string }) {
   }
 }
 
+/** The name asked for is not a DAO treasury: say what it is, what Tickmark reads, and where to go next. */
+function NotADaoNotice({ kind, account, network }: { kind: NotADao['kind']; account: string; network: string }) {
+  const books = useBooks();
+  const title = kind === 'wallet' ? 'That’s a personal wallet' : kind === 'contract' ? 'That account isn’t a DAO treasury' : `No account by that name on ${network === 'testnet' ? 'Testnet' : 'Mainnet'}`;
+  return (
+    <div className="page narrow">
+      <div className="card notice-card" role="alert">
+        <h1 className="title-2">{title}</h1>
+        <p className="mono small faint">{account}</p>
+        {kind === 'missing' ? (
+          <p className="secondary">Check the spelling, or switch between Mainnet and Testnet. A DAO’s name usually ends in .sputnik-dao.near.</p>
+        ) : (
+          <p className="secondary">
+            Tickmark reads DAO treasuries: shared wallets where every payment is approved by a vote, with a proposal that says why. A personal wallet has no such record, so there is nothing to explain its payments with. Personal wallets are on the list for later.
+          </p>
+        )}
+        <div className="actions">
+          <a className="btn btn-primary" href="#/">
+            Try a DAO
+          </a>
+          <button className="btn btn-gray" type="button" onClick={books.cancel}>
+            Open the demo
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BuildError() {
   const books = useBooks();
+  if (books.notDao && books.request) return <NotADaoNotice kind={books.notDao} account={books.request.dao} network={books.request.network} />;
   return (
     <div className="page">
       <div className="card error-card" role="alert">

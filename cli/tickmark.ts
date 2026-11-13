@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { centsToString, type JournalEntry } from '../core/books.ts';
 import { closingProposal, findClosings, mayPropose, nearCliCommand } from '../core/closing.ts';
-import { fetchPolicy, fetchProposals } from '../core/dao.ts';
+import { fetchPolicy, fetchProposals, NotADao } from '../core/dao.ts';
 import { kindName } from '../core/decode.ts';
 import { exportBooks } from '../core/exports.ts';
 import { type QuestionKind } from '../core/questions.ts';
@@ -340,17 +340,24 @@ if (block !== undefined && !(Number.isSafeInteger(block) && block > 0)) {
   console.error('--block must be a block height');
   process.exit(1);
 }
-await commands[command as keyof typeof commands](target, {
-  since: values.since,
-  network: values.network,
-  lines: values.lines,
-  json: values.json,
-  skipDates: values['skip-dates'],
-  out: values.out,
-  xeroTaxRate: values['xero-tax-rate'],
-  block,
-  suggest: values.suggest,
-  notes: values.notes,
-  model: values.model,
-  signer: values.signer,
-});
+try {
+  await commands[command as keyof typeof commands](target, {
+    since: values.since,
+    network: values.network,
+    lines: values.lines,
+    json: values.json,
+    skipDates: values['skip-dates'],
+    out: values.out,
+    xeroTaxRate: values['xero-tax-rate'],
+    block,
+    suggest: values.suggest,
+    notes: values.notes,
+    model: values.model,
+    signer: values.signer,
+  });
+} catch (error) {
+  // Not a DAO is the visitor's input, not a fault: say so in one line instead of a stack trace.
+  if (!(error instanceof NotADao)) throw error;
+  console.error(`${error.message}${error.kind === 'missing' ? ` (network: ${values.network})` : ''}`);
+  process.exitCode = 1;
+}

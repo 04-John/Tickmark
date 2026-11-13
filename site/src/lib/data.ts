@@ -69,6 +69,13 @@ export function stepOf(message: string): number {
 
 export type RunRequest = { dao: string; network: Network; since?: string; block?: number };
 
+/** A DAO name as typed: "daocubator" means daocubator.sputnik-dao.near (daocubator.sputnik-v2.testnet on testnet). */
+export function daoName(input: string, network: Network): string {
+  const name = input.trim().toLowerCase();
+  if (!name || name.includes('.') || /^[0-9a-f]{64}$/.test(name)) return name;
+  return `${name}.${network === 'testnet' ? 'sputnik-v2.testnet' : 'sputnik-dao.near'}`;
+}
+
 /** Builds a treasury's books in the browser: 20 s to 2 min. `onStep` gets the step index and the raw message. */
 export async function buildBooks(req: RunRequest, onStep: (step: number, message: string) => void): Promise<SignedReport> {
   const { report } = await makeBooks(
